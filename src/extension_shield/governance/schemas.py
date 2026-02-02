@@ -389,4 +389,3 @@ class GovernanceReport(BaseModel):
 
 
 
-

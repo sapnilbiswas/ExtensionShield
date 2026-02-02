@@ -1,5 +1,5 @@
 """
-FastAPI Backend for ExtensionShield
+FastAPI Backend for Project Atlas
 
 Provides REST API endpoints for the frontend to trigger extension analysis
 and retrieve results.
@@ -56,21 +56,15 @@ class FileListResponse(BaseModel):
 
 # Initialize FastAPI app
 app = FastAPI(
-    title="ExtensionShield API",
+    title="Project Atlas API",
     description="REST API for Chrome extension security analysis",
     version="1.0.0",
 )
 
-# Configure CORS with production support
-def get_cors_origins() -> list[str]:
-    """Get CORS origins from environment or use defaults."""
-    # Check for custom CORS origins (comma-separated)
-    custom_origins = os.getenv("CORS_ORIGINS", "")
-    if custom_origins:
-        return [origin.strip() for origin in custom_origins.split(",")]
-    
-    # Default origins for development and common production patterns
-    origins = [
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
         "http://localhost:5173",  # Vite dev server (default)
         "http://localhost:5174",  # Vite fallback port
         "http://localhost:5175",  # Vite fallback port
@@ -78,24 +72,7 @@ def get_cors_origins() -> list[str]:
         "http://localhost:5177",  # Vite fallback port
         "http://localhost:3000",  # Alternative dev port
         "http://localhost:8007",  # Same-origin in container
-    ]
-    
-    # Add Railway production URLs if deployed
-    railway_url = os.getenv("RAILWAY_PUBLIC_DOMAIN")
-    if railway_url:
-        origins.append(f"https://{railway_url}")
-    
-    # Add custom domain if configured
-    custom_domain = os.getenv("CUSTOM_DOMAIN")
-    if custom_domain:
-        origins.append(f"https://{custom_domain}")
-    
-    return origins
-
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=get_cors_origins(),
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -294,6 +271,10 @@ def calculate_security_score(state: WorkflowState) -> int:
         sast_findings = javascript_analysis.get("sast_findings", {})
         for findings_list in sast_findings.values():
             for finding in findings_list:
+                check_id = finding.get("check_id", "")
+                # Exclude third-party API findings from SAST risk (counted separately)
+                if "third_party" in check_id.lower() or "external_api" in check_id.lower():
+                    continue
                 severity = finding.get("extra", {}).get("severity", "INFO").upper()
                 if severity in ("CRITICAL", "HIGH"):
                     sast_score += 8  # Add risk points
@@ -394,8 +375,44 @@ def calculate_security_score(state: WorkflowState) -> int:
 
     manifest_score = min(10, manifest_score)  # Cap at 10
 
+    # Component 5: Third-Party API Calls Detection (+1 point if detected, only once)
+    third_party_api_score = 0
+    if javascript_analysis and isinstance(javascript_analysis, dict):
+        sast_findings = javascript_analysis.get("sast_findings", {})
+        # Check for third-party API rule in SAST findings
+        # Rule ID: banking.third_party.external_api_calls
+        third_party_detected = False
+        for findings_list in sast_findings.values():
+            for finding in findings_list:
+                check_id = finding.get("check_id", "")
+                if check_id and (
+                    "banking.third_party.external_api_calls" in check_id
+                    or "third_party" in check_id.lower()
+                    or "external_api" in check_id.lower()
+                ):
+                    third_party_detected = True
+                    break
+            if third_party_detected:
+                break
+        if third_party_detected:
+            third_party_api_score = 1  # Add only once, not per finding
+
+    # Component 6: Screenshot Capture Detection (+1 point if detected, only once)
+    screenshot_score = 0
+    if permissions_analysis and isinstance(permissions_analysis, dict):
+        screenshot_analysis = permissions_analysis.get("screenshot_capture_analysis", {})
+        if isinstance(screenshot_analysis, dict) and screenshot_analysis.get("detected", False):
+            screenshot_score = 1  # Add only once, not per evidence item
+
     # Calculate final weighted score (risk points)
-    final_score = sast_score + permissions_score + webstore_score + manifest_score
+    final_score = (
+        sast_score
+        + permissions_score
+        + webstore_score
+        + manifest_score
+        + third_party_api_score
+        + screenshot_score
+    )
 
     # Invert to security score: 100 = secure, 0 = risky
     return max(0, min(100, 100 - final_score))
@@ -533,7 +550,7 @@ async def root():
     if STATIC_DIR.exists() and index_file.exists():
         return FileResponse(index_file)
     # Otherwise return API info (development mode)
-    return {"name": "ExtensionShield API", "version": "1.0.0", "status": "running"}
+    return {"name": "Project Atlas API", "version": "1.0.0", "status": "running"}
 
 
 @app.post("/api/scan/trigger")
@@ -825,7 +842,7 @@ async def generate_pdf_report(extension_id: str) -> Response:
         # Get extension name for filename
         extension_name = results.get("extension_name", results.get("metadata", {}).get("title", extension_id))
         safe_name = "".join(c for c in extension_name if c.isalnum() or c in " -_")[:50]
-        filename = f"ExtensionShield_Report_{safe_name}.pdf"
+        filename = f"Project_Atlas_Report_{safe_name}.pdf"
 
         return Response(
             content=pdf_bytes,
@@ -997,7 +1014,7 @@ async def clear_all_scans():
 @app.get("/health")
 async def health_check():
     """Health check endpoint for container orchestration."""
-    return {"status": "healthy", "service": "extension-shield", "version": "1.0.0"}
+    return {"status": "healthy", "service": "project-atlas", "version": "1.0.0"}
 
 
 # Mount static files for React frontend assets (if static directory exists)
@@ -1025,7 +1042,7 @@ async def serve_spa(full_path: str):
 
     # If no static files, return API info (development mode)
     return {
-        "name": "ExtensionShield API",
+        "name": "Project Atlas API",
         "version": "1.0.0",
         "docs": "/docs",
         "note": "Frontend not built. Run 'npm run build' in frontend/ directory.",

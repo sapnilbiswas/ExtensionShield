@@ -6,7 +6,7 @@ import os
 import json
 import logging
 from pathlib import Path
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Any
 from dotenv import load_dotenv
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnableParallel, RunnableSequence
@@ -290,6 +290,112 @@ class PermissionsAnalyzer(BaseAnalyzer):
 
         return "\n".join(result_parts)
 
+    def _detect_screenshot_capture(
+        self, manifest: Dict, extension_dir: str
+    ) -> Dict[str, Any]:
+        """
+        Detect screenshot capture capabilities in the extension.
+
+        Checks for:
+        1. Screenshot-related permissions (desktopCapture, tabCapture)
+        2. Screenshot libraries in content scripts (html2canvas, html2pdf)
+        3. Screenshot library files in extension directory
+
+        Returns:
+            Dictionary with detection results
+        """
+        detected = False
+        detection_method = None
+        evidence = []
+
+        # Check for screenshot-related permissions
+        permissions = manifest.get("permissions", [])
+        optional_permissions = manifest.get("optional_permissions", [])
+
+        screenshot_permissions = ["desktopCapture", "tabCapture"]
+        found_permissions = []
+
+        for perm in screenshot_permissions:
+            if perm in permissions:
+                found_permissions.append(perm)
+                detected = True
+                if not detection_method:
+                    detection_method = "Manifest permission"
+            elif perm in optional_permissions:
+                found_permissions.append(f"{perm} (optional)")
+                detected = True
+                if not detection_method:
+                    detection_method = "Optional manifest permission"
+
+        if found_permissions:
+            evidence.extend(
+                [
+                    {"permission": perm, "source": "manifest_permissions"}
+                    for perm in found_permissions
+                ]
+            )
+
+        # Check content scripts for screenshot libraries
+        content_scripts = manifest.get("content_scripts", [])
+        screenshot_libraries = ["html2canvas", "html2pdf"]
+
+        for script_config in content_scripts:
+            js_files = script_config.get("js", [])
+            for js_file in js_files:
+                js_file_lower = js_file.lower()
+                for library in screenshot_libraries:
+                    if library in js_file_lower:
+                        detected = True
+                        if not detection_method:
+                            detection_method = "Screenshot library in manifest"
+                        evidence.append(
+                            {
+                                "file": js_file,
+                                "library": library,
+                                "source": "manifest_content_scripts",
+                            }
+                        )
+
+        # Check extension directory for screenshot library files
+        if extension_dir and os.path.exists(extension_dir):
+            screenshot_file_patterns = [
+                "html2canvas.js",
+                "html2canvas.min.js",
+                "html2pdf.js",
+                "html2pdf.min.js",
+                "html2pdf.bundle.js",
+                "html2pdf.bundle.min.js",
+            ]
+
+            for root, _, files in os.walk(extension_dir):
+                for file in files:
+                    file_lower = file.lower()
+                    for pattern in screenshot_file_patterns:
+                        if pattern.lower() in file_lower:
+                            detected = True
+                            if not detection_method:
+                                detection_method = "Screenshot library file"
+                            rel_path = os.path.relpath(
+                                os.path.join(root, file), extension_dir
+                            )
+                            evidence.append(
+                                {
+                                    "file": rel_path,
+                                    "source": "extracted_files",
+                                }
+                            )
+                            break
+
+        return {
+            "detected": detected,
+            "detection_method": detection_method or "Not detected",
+            "evidence": evidence[:10],  # Limit to 10 evidence items
+            "risk_score": 1 if detected else 0,
+            "description": "Screenshot capture capability detected"
+            if detected
+            else "No screenshot capture capability detected",
+        }
+
     def analyze(
         self, extension_dir: str, manifest: Optional[Dict] = None, metadata: Optional[Dict] = None
     ) -> Optional[Dict]:
@@ -313,8 +419,14 @@ class PermissionsAnalyzer(BaseAnalyzer):
             host_permissions=host_permissions
         )
 
+        # Detect screenshot capture capabilities
+        screenshot_capture_analysis = self._detect_screenshot_capture(
+            manifest=manifest, extension_dir=extension_dir
+        )
+
         return {
             "permissions_analysis": permissions_analysis,
             "permissions_details": permissions_details,
             "host_permissions_analysis": host_permissions_analysis,
+            "screenshot_capture_analysis": screenshot_capture_analysis,
         }

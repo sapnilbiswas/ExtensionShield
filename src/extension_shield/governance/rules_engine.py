@@ -144,15 +144,27 @@ class ConditionEvaluator:
         return parts
     
     def _get_value(self, path: str) -> Any:
-        """Get value from context using dot notation."""
+        """Get value from context using dot notation.
+        
+        Supports nested dictionary access like:
+        - facts.host_access_patterns
+        - facts.security_findings.virustotal_threat_level
+        - manifest.permissions
+        """
         path = path.strip()
+        if not path:
+            return None
+        
         parts = path.split(".")
         
         value = self.context
         for part in parts:
+            if value is None:
+                return None
             if isinstance(value, dict):
                 value = value.get(part)
             else:
+                # If intermediate value is not a dict, can't continue traversal
                 return None
         
         return value
@@ -245,8 +257,12 @@ class ConditionEvaluator:
         
         if value is None:
             return True
+        if isinstance(value, bool):
+            return value is False
         if isinstance(value, (list, dict, str)):
             return len(value) == 0
+        if isinstance(value, (int, float)):
+            return value == 0
         
         return False
     
@@ -260,8 +276,12 @@ class ConditionEvaluator:
         
         if value is None:
             return False
+        if isinstance(value, bool):
+            return value is True
         if isinstance(value, (list, dict, str)):
             return len(value) > 0
+        if isinstance(value, (int, float)):
+            return value != 0
         
         return True
     

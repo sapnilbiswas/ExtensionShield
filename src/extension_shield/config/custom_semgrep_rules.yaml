@@ -199,3 +199,61 @@ rules:
           eval($X);
       - pattern: |
           new Function($X);
+
+######################################################################
+# Third-party external API calls detection (all HTTP methods)
+######################################################################
+  - id: banking.third_party.external_api_calls
+    message: Third-party API call detected—extension communicating with external domains.
+    severity: ERROR
+    languages: [javascript, typescript]
+    metadata:
+      category: third-party-api
+      mitre: [T1041, T1071]
+      owasp: [A01-Broken Access Control, A05-Security Misconfiguration]
+    pattern-either:
+      # Structural patterns for well-formatted code
+      - patterns:
+          - pattern: |
+              fetch($URL, ...);
+          - metavariable-regex:
+              metavariable: $URL
+              regex: "https?://(?!chrome://|chrome-extension://|localhost|127\\.0\\.0\\.1|0\\.0\\.0\\.0|\\*)[a-zA-Z0-9][a-zA-Z0-9.-]*[a-zA-Z0-9]*\\.[a-zA-Z]{2,}"
+      - patterns:
+          - pattern: |
+              (new XMLHttpRequest()).open($M, $URL, ...);
+          - metavariable-regex:
+              metavariable: $URL
+              regex: "https?://(?!chrome://|chrome-extension://|localhost|127\\.0\\.0\\.1|0\\.0\\.0\\.0|\\*)[a-zA-Z0-9][a-zA-Z0-9.-]*[a-zA-Z0-9]*\\.[a-zA-Z]{2,}"
+      - patterns:
+          - pattern: |
+              new WebSocket($URL, ...);
+          - metavariable-regex:
+              metavariable: $URL
+              regex: "(ws|wss)://(?!localhost|127\\.0\\.0\\.1|\\*)[a-zA-Z0-9][a-zA-Z0-9.-]*[a-zA-Z0-9]*\\.[a-zA-Z]{2,}"
+      - patterns:
+          - pattern: |
+              $WINDOW.postMessage($DATA, $ORIGIN, ...);
+          - metavariable-regex:
+              metavariable: $ORIGIN
+              regex: "https?://(?!chrome://|chrome-extension://|localhost|\\*)[a-zA-Z0-9][a-zA-Z0-9.-]*[a-zA-Z0-9]*\\.[a-zA-Z]{2,}"
+      - patterns:
+          - pattern: |
+              navigator.sendBeacon($URL, ...);
+          - metavariable-regex:
+              metavariable: $URL
+              regex: "https?://(?!chrome://|chrome-extension://|localhost|127\\.0\\.0\\.1|0\\.0\\.0\\.0|\\*)[a-zA-Z0-9][a-zA-Z0-9.-]*[a-zA-Z0-9]*\\.[a-zA-Z]{2,}"
+      # Regex patterns for minified code - simplified (Semgrep pattern-regex has limited regex support)
+      # Matches external URLs and filters chrome:///localhost in post-processing
+      - pattern-regex: |
+          fetch\s*\(\s*["']https?://[a-zA-Z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,}[^\s"\'`)]*["']
+      - pattern-regex: |
+          fetch\s*\(\s*`https?://[a-zA-Z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,}[^\s"\'`)]*`
+      - pattern-regex: |
+          \.open\s*\(\s*["'][^"']*["']\s*,\s*["']https?://[a-zA-Z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,}[^\s"\'`)]*["']
+      - pattern-regex: |
+          new\s+WebSocket\s*\(\s*["'](?:ws|wss)://[a-zA-Z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,}[^\s"\'`)]*["']
+      - pattern-regex: |
+          postMessage\s*\([^,]+,\s*["']https?://[a-zA-Z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,}[^\s"\'`)]*["']
+      - pattern-regex: |
+          navigator\.sendBeacon\s*\(\s*["']https?://[a-zA-Z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,}[^\s"\'`)]*["']

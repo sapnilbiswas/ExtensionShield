@@ -2,6 +2,7 @@
 
 import json
 import logging
+import re
 from typing import Dict, Optional, List
 import subprocess
 import os
@@ -195,6 +196,56 @@ class JavaScriptAnalyzer(BaseAnalyzer):
         return file_path.split("/")[-1]
 
     @staticmethod
+    def _scan_file_for_third_party_api(file_path: str, extension_dir: str) -> Optional[Dict]:
+        """
+        Directly scan a file for third-party API calls using regex.
+
+        This is a fallback when Semgrep pattern-regex doesn't work on minified code.
+        Returns a finding dict if detected, None otherwise.
+        """
+        try:
+            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                content = f.read()
+
+            pattern = r'fetch\s*\(\s*["\']https?://[a-zA-Z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,}[^\s"\'`)]*["\']'
+            matches = list(re.finditer(pattern, content, re.IGNORECASE))
+
+            for match in matches:
+                url = match.group(0)
+                # Exclude chrome://, chrome-extension://, localhost
+                if (
+                    "chrome://" not in url
+                    and "chrome-extension://" not in url
+                    and "localhost" not in url
+                    and "127.0.0.1" not in url
+                ):
+                    line_num = content.count("\n", 0, match.start()) + 1
+                    lines = content.split("\n")
+                    rel_path = JavaScriptAnalyzer._get_relative_path(file_path, extension_dir)
+                    return {
+                        "check_id": "banking.third_party.external_api_calls",
+                        "path": rel_path,
+                        "start": {"line": line_num, "col": match.start()},
+                        "end": {"line": line_num, "col": match.end()},
+                        "extra": {
+                            "severity": "ERROR",
+                            "message": f"Third-party API call detected—extension communicating with external domains via fetch: {url[:80]}",
+                            "metadata": {
+                                "category": "third-party-api",
+                                "mitre": ["T1041", "T1071"],
+                                "owasp": [
+                                    "A01-Broken Access Control",
+                                    "A05-Security Misconfiguration",
+                                ],
+                            },
+                            "lines": lines[line_num - 1][:200] if line_num <= len(lines) else "",
+                        },
+                    }
+        except Exception as exc:
+            logger.debug("Error in direct third-party scan for %s: %s", file_path, exc)
+        return None
+
+    @staticmethod
     def _run_semgrep_batch_scan(
         file_paths: List[str], extension_dir: str, config: str = "auto", timeout: int = 300
     ) -> Dict[str, List]:
@@ -238,6 +289,27 @@ class JavaScriptAnalyzer(BaseAnalyzer):
                             )
                             if rel_path in findings_by_file:
                                 findings_by_file[rel_path].append(finding)
+                
+                # Fallback: If no third-party API findings detected, scan files directly
+                # This handles cases where Semgrep pattern-regex doesn't work on minified code
+                third_party_found = any(
+                    "third_party" in f.get("check_id", "").lower()
+                    or "external_api" in f.get("check_id", "").lower()
+                    for findings_list in findings_by_file.values()
+                    for f in findings_list
+                )
+                
+                if not third_party_found:
+                    # Only add ONE finding total, not one per file
+                    for file_path in file_paths:
+                        rel_path = JavaScriptAnalyzer._get_relative_path(file_path, extension_dir)
+                        finding = JavaScriptAnalyzer._scan_file_for_third_party_api(file_path, extension_dir)
+                        if finding:
+                            if rel_path not in findings_by_file:
+                                findings_by_file[rel_path] = []
+                            findings_by_file[rel_path].append(finding)
+                            logger.debug("Fallback scan found third-party API in %s", rel_path)
+                            break  # Only add ONE finding per analysis, not per file
 
                 logger.info(
                     "Batch scan completed: found findings in %d/%d files",
@@ -311,6 +383,26 @@ class JavaScriptAnalyzer(BaseAnalyzer):
                         "Parallel batch scan failed for batch of %d files: %s", len(batch), exc
                     )
 
+        # Fallback: Check if third-party API was detected, if not scan directly
+        third_party_found = any(
+            "third_party" in f.get("check_id", "").lower()
+            or "external_api" in f.get("check_id", "").lower()
+            for findings_list in all_findings.values()
+            for f in findings_list
+        )
+
+        if not third_party_found:
+            # Only add ONE finding total, not one per file
+            for file_path in file_paths:
+                rel_path = self._get_relative_path(file_path, extension_dir)
+                finding = self._scan_file_for_third_party_api(file_path, extension_dir)
+                if finding:
+                    if rel_path not in all_findings:
+                        all_findings[rel_path] = []
+                    all_findings[rel_path].append(finding)
+                    logger.debug("Fallback scan found third-party API in %s", rel_path)
+                    break  # Only add ONE finding per analysis, not per file
+
         return all_findings
 
     def _filter_files(
@@ -339,12 +431,38 @@ class JavaScriptAnalyzer(BaseAnalyzer):
 
     @staticmethod
     def _aggregate_findings(all_findings: Dict[str, List]) -> Dict:
-        """Aggregate SAST findings by severity and count."""
+        """
+        Aggregate SAST findings by severity and count.
+
+        Also filters third-party API findings to exclude chrome://, chrome-extension://,
+        and localhost (Semgrep pattern-regex has limited regex support).
+        """
         severity_counts = {"CRITICAL": 0, "ERROR": 0, "WARNING": 0, "INFO": 0}
         total_findings = 0
         files_with_findings = set()
+        excluded_patterns = ["chrome://", "chrome-extension://", "localhost", "127.0.0.1", "0.0.0.0"]
 
         for file_path, findings in all_findings.items():
+            if findings:
+                # Filter third-party API findings to remove false positives from pattern-regex
+                filtered_findings = []
+                for finding in findings:
+                    check_id = finding.get("check_id", "")
+                    if "third_party" in check_id.lower() or "external_api" in check_id.lower():
+                        # Check if this is a false positive (chrome://, localhost, etc.)
+                        message = finding.get("extra", {}).get("message", "")
+                        lines = finding.get("extra", {}).get("lines", "")
+                        should_exclude = any(
+                            pattern in message.lower() or pattern in lines.lower()
+                            for pattern in excluded_patterns
+                        )
+                        if not should_exclude:
+                            filtered_findings.append(finding)
+                    else:
+                        filtered_findings.append(finding)
+                all_findings[file_path] = filtered_findings
+                findings = filtered_findings
+
             if findings:
                 files_with_findings.add(file_path)
                 for finding in findings:
@@ -523,6 +641,26 @@ class JavaScriptAnalyzer(BaseAnalyzer):
                     all_findings[rel_path] = security_findings["results"]
                 else:
                     all_findings[rel_path] = []
+
+        # Fallback: Check if third-party API was detected, if not scan directly
+        third_party_found = any(
+            "third_party" in f.get("check_id", "").lower()
+            or "external_api" in f.get("check_id", "").lower()
+            for findings_list in all_findings.values()
+            for f in findings_list
+        )
+
+        if not third_party_found:
+            # Only add ONE finding total, not one per file
+            for file_path in files_to_scan:
+                rel_path = self._get_relative_path(file_path, extension_dir)
+                finding = self._scan_file_for_third_party_api(file_path, extension_dir)
+                if finding:
+                    if rel_path not in all_findings:
+                        all_findings[rel_path] = []
+                    all_findings[rel_path].append(finding)
+                    logger.debug("Fallback scan found third-party API in %s", rel_path)
+                    break  # Only add ONE finding per analysis, not per file
 
         # Generate LLM summary of findings
         sast_analysis = self._summarize_sast_findings(

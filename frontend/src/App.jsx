@@ -5,13 +5,14 @@ import { ScanProvider } from "./context/ScanContext";
 
 // Pages
 import HomePage from "./pages/HomePage";
-import { ScannerPage, ScanProgressPage, ScanResultsPage } from "./pages/scanner";
+import { ScannerPage, ScanProgressPage, ScanResultsPage, ScanResultsPageV2 } from "./pages/scanner";
 import { ReportsPage, ReportDetailPage } from "./pages/reports";
 import ScanHistoryPage from "./pages/ScanHistoryPage";
 import SettingsPage from "./pages/SettingsPage";
 
 // Components
 import SignInModal from "./components/SignInModal";
+import ShieldLogo from "./components/ShieldLogo";
 import "./App.scss";
 
 function UserMenu() {
@@ -215,20 +216,23 @@ function InsightsMegamenu() {
             {/* Quick Actions */}
             <div className="megamenu-section">
               <h3 className="megamenu-section-title">Quick Access</h3>
+              <NavLink to="/history" className="megamenu-item" onClick={() => setIsOpen(false)}>
+                <span className="free-badge-top">Free</span>
+                <div className="megamenu-icon">🕐</div>
+                <div className="megamenu-content">
+                  <div className="megamenu-label">
+                    <span>Scan</span>
+                    <span>History</span>
+                  </div>
+                  <div className="megamenu-desc">Browse all past scans</div>
+                </div>
+              </NavLink>
               <NavLink to="/reports" className="megamenu-item" onClick={() => setIsOpen(false)}>
                 <span className="upgrade-badge-top">Upgrade</span>
                 <div className="megamenu-icon">📋</div>
                 <div className="megamenu-content">
                   <div className="megamenu-label">Security Reports</div>
                   <div className="megamenu-desc">View governance verdicts</div>
-                </div>
-              </NavLink>
-              <NavLink to="/history" className="megamenu-item" onClick={() => setIsOpen(false)}>
-                <span className="upgrade-badge-top">Upgrade</span>
-                <div className="megamenu-icon">🕐</div>
-                <div className="megamenu-content">
-                  <div className="megamenu-label">Scan History</div>
-                  <div className="megamenu-desc">Browse all past scans</div>
                 </div>
               </NavLink>
             </div>
@@ -269,9 +273,8 @@ function AppHeader() {
     <header className={`atlas-header ${isHomePage ? "transparent" : "solid"}`}>
       <div className="header-container">
         <NavLink to="/" className="header-logo">
-          <span className="logo-project">PROJECT</span>
-          <span className="logo-diamond">◆</span>
-          <span className="logo-atlas">ATLAS</span>
+          <ShieldLogo size={32} />
+          <span className="logo-text">ExtensionShield</span>
         </NavLink>
 
         <nav className="header-nav">
@@ -326,7 +329,9 @@ function AppContent() {
           {/* Scanner Routes */}
           <Route path="/scanner" element={<ScannerPage />} />
           <Route path="/scanner/progress/:scanId" element={<ScanProgressPage />} />
-          <Route path="/scanner/results/:scanId" element={<ScanResultsPage />} />
+          <Route path="/scanner/results/:scanId" element={<ScanResultsPageV2 />} />
+          {/* Legacy results page route (for direct access if needed) */}
+          <Route path="/scanner/results-legacy/:scanId" element={<ScanResultsPage />} />
           
           {/* History */}
           <Route path="/history" element={<ScanHistoryPage />} />

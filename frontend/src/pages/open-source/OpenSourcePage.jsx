@@ -8,7 +8,7 @@ const OpenSourcePage = () => {
     <>
       <Helmet>
         <title>Open Source | ExtensionShield</title>
-        <meta name="description" content="ExtensionShield is open source. Explore our GitHub, contribute code, join GSoC, or help improve browser extension security for everyone." />
+        <meta name="description" content="ExtensionShield Core is open source under the MIT License. The hosted service and enterprise components are proprietary. Explore our GitHub, contribute code, join GSoC, or help improve browser extension security for everyone." />
         <link rel="canonical" href="https://extensionaudit.com/open-source" />
       </Helmet>
 
@@ -22,8 +22,8 @@ const OpenSourcePage = () => {
             <div className="oss-badge">🌱 Open Source</div>
             <h1>Built in the Open</h1>
             <p>
-              ExtensionShield is open source under the MIT license. 
-              We believe browser security should be transparent and community-driven.
+              ExtensionShield Core is open source under the MIT License.
+              The hosted service and certain enterprise components (advanced rule packs, threat-intel integrations, and automation workflows) are proprietary and governed by the ExtensionShield Commercial License.
             </p>
           </header>
 
@@ -115,8 +115,8 @@ const OpenSourcePage = () => {
           <div className="license-section">
             <h3>License</h3>
             <p>
-              ExtensionShield is licensed under the <strong>MIT License</strong>. 
-              You're free to use, modify, and distribute the code with attribution.
+              <strong>ExtensionShield Core</strong> is open source under the <strong>MIT License</strong>. 
+              The hosted service and certain enterprise components are proprietary and governed by the <strong>ExtensionShield Commercial License</strong>.
             </p>
           </div>
         </div>

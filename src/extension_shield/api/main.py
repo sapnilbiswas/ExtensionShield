@@ -56,6 +56,10 @@ class FileListResponse(BaseModel):
 
     files: list[str]
 
+class PageViewEvent(BaseModel):
+    """Request model for privacy-first pageview telemetry (no PII)."""
+
+    path: str
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -1429,6 +1433,36 @@ async def get_statistics():
         "avg_security_score": stats.get("avg_security_score", 0),
         "risk_distribution": risk_dist,
     }
+
+@app.post("/api/telemetry/pageview")
+async def track_pageview(event: PageViewEvent):
+    """
+    Privacy-first pageview counter.
+
+    - No IP storage
+    - No user identifier
+    - Server computes day in UTC
+    """
+    day = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    path = (event.path or "/").strip()
+    try:
+        count = db.increment_page_view(day=day, path=path)  # SQLite-backed
+    except AttributeError:
+        # If a non-SQLite backend is active and telemetry isn't implemented there yet,
+        # fail open (do not break the UI).
+        count = 0
+    return {"day": day, "path": path if path.startswith("/") else f"/{path}", "count": count}
+
+
+@app.get("/api/telemetry/summary")
+async def telemetry_summary(days: int = 14):
+    """
+    Aggregate telemetry summary (open endpoint for now; intended for admin later).
+    """
+    try:
+        return db.get_page_view_summary(days=days)
+    except AttributeError:
+        return {"days": days, "start_day": None, "end_day": None, "by_day": {}, "by_path": {}, "rows": []}
 
 
 @app.get("/api/history")

@@ -7,6 +7,7 @@ import { topNavItems, megaMenuConfig, userMenuItems } from "./nav/navigation";
 import SignInModal from "./components/SignInModal";
 import ShieldLogo from "./components/ShieldLogo";
 import Footer from "./components/Footer";
+import { trackPageView } from "./services/telemetryService";
 import "./App.scss";
 
 // Loading fallback
@@ -270,12 +271,24 @@ function AppHeader() {
   );
 }
 
+function TelemetryTracker() {
+  const location = useLocation();
+
+  React.useEffect(() => {
+    // Track on route entry; fails silently if backend is unavailable.
+    trackPageView(location.pathname);
+  }, [location.pathname]);
+
+  return null;
+}
+
 // App Content Component
 function AppContent() {
   return (
     <div className="atlas-app">
       <AppHeader />
       <SignInModal />
+      <TelemetryTracker />
 
       <main className="atlas-main">
         <Suspense fallback={<PageLoader />}>

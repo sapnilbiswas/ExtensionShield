@@ -7,7 +7,7 @@ Handles persistent storage of scan results, statistics, and history.
 import os
 import sqlite3
 import json
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Optional, Dict, Any, List
 from contextlib import contextmanager
@@ -50,6 +50,18 @@ class Database:
         """Initialize database schema."""
         with self.get_connection() as conn:
             cursor = conn.cursor()
+
+            # Privacy-first telemetry (no PII)
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS page_views_daily (
+                    day TEXT NOT NULL,
+                    path TEXT NOT NULL,
+                    count INTEGER NOT NULL DEFAULT 0,
+                    PRIMARY KEY (day, path)
+                )
+            """
+            )
 
             # Scan results table
             cursor.execute(
@@ -127,6 +139,13 @@ class Database:
             """
             )
 
+            cursor.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_page_views_day
+                ON page_views_daily(day)
+            """
+            )
+
     def save_scan_result(self, result: Dict[str, Any]) -> bool:
         """Save or update scan result."""
         try:
@@ -191,6 +210,93 @@ class Database:
         except Exception as e:
             print(f"Error saving scan result: {e}")
             return False
+
+    def increment_page_view(self, day: str, path: str) -> int:
+        """
+        Increment a page view count for a given UTC day + path.
+
+        Args:
+            day: YYYY-MM-DD (UTC)
+            path: Route path (e.g., /research)
+
+        Returns:
+            Updated count
+        """
+        path = (path or "/").strip()
+        if not path.startswith("/"):
+            path = "/" + path
+
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                INSERT INTO page_views_daily (day, path, count)
+                VALUES (?, ?, 1)
+                ON CONFLICT(day, path) DO UPDATE SET count = count + 1
+            """,
+                (day, path),
+            )
+            cursor.execute(
+                "SELECT count FROM page_views_daily WHERE day = ? AND path = ?",
+                (day, path),
+            )
+            row = cursor.fetchone()
+            return int(row["count"]) if row else 0
+
+    def get_page_view_summary(self, days: int = 14) -> Dict[str, Any]:
+        """
+        Return aggregate telemetry counts for the last N UTC days.
+
+        Returns:
+            {
+              "days": int,
+              "start_day": "YYYY-MM-DD",
+              "end_day": "YYYY-MM-DD",
+              "by_day": { "YYYY-MM-DD": int },
+              "by_path": { "/research": int },
+              "rows": [{ "day": "...", "path": "...", "count": 123 }]
+            }
+        """
+        days = int(days or 14)
+        days = max(1, min(days, 365))
+
+        now_utc = datetime.now(timezone.utc).date()
+        start_date = now_utc - timedelta(days=days - 1)
+        start_day = start_date.strftime("%Y-%m-%d")
+        end_day = now_utc.strftime("%Y-%m-%d")
+
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT day, path, count
+                FROM page_views_daily
+                WHERE day >= ?
+                ORDER BY day ASC, path ASC
+            """,
+                (start_day,),
+            )
+            rows = [dict(r) for r in cursor.fetchall()]
+
+        by_day: Dict[str, int] = {}
+        by_path: Dict[str, int] = {}
+        for r in rows:
+            d = r.get("day")
+            p = r.get("path")
+            c = int(r.get("count") or 0)
+            if d:
+                by_day[d] = by_day.get(d, 0) + c
+            if p:
+                by_path[p] = by_path.get(p, 0) + c
+
+        return {
+            "days": days,
+            "start_day": start_day,
+            "end_day": end_day,
+            "by_day": by_day,
+            "by_path": by_path,
+            "rows": rows,
+        }
 
     def get_scan_result(self, extension_id: str) -> Optional[Dict[str, Any]]:
         """Get scan result by extension ID."""

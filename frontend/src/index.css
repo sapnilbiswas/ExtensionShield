@@ -85,6 +85,106 @@
   --atlas-border: rgba(148, 163, 184, 0.1);
 }
 
+/* ============================================================================
+   LIGHT MODE THEME
+   ============================================================================ */
+.light {
+  /* Background Colors - Light Theme */
+  --color-background: 0 0% 100%;
+  --color-surface: 0 0% 98%;
+  --color-surface-elevated: 0 0% 96%;
+  --color-surface-hover: 0 0% 94%;
+
+  /* Foreground Colors */
+  --color-foreground: 222 47% 11%;
+  --color-foreground-muted: 215 16% 47%;
+  --color-foreground-subtle: 215 12% 35%;
+
+  /* Primary Brand - Emerald (darker for light mode) */
+  --color-primary: 142 71% 40%;
+  --color-primary-hover: 142 71% 35%;
+  --color-primary-foreground: 0 0% 100%;
+
+  /* Secondary - Purple */
+  --color-secondary: 256 65% 60%;
+  --color-secondary-hover: 256 65% 55%;
+  --color-secondary-foreground: 0 0% 100%;
+
+  /* Accent - Emerald */
+  --color-accent: 142 71% 40%;
+  --color-accent-hover: 142 71% 35%;
+  --color-accent-foreground: 0 0% 100%;
+
+  /* Status Colors */
+  --color-muted: 215 16% 47%;
+  --color-muted-foreground: 215 20% 35%;
+
+  --color-destructive: 0 84% 60%;
+  --color-destructive-hover: 0 84% 55%;
+  --color-destructive-foreground: 0 0% 100%;
+
+  --color-success: 142 71% 40%;
+  --color-success-hover: 142 71% 35%;
+  --color-success-foreground: 0 0% 100%;
+
+  --color-warning: 38 92% 50%;
+  --color-warning-hover: 38 92% 45%;
+  --color-warning-foreground: 0 0% 100%;
+
+  /* Borders & Inputs */
+  --color-border: 215 20% 85%;
+  --color-border-subtle: 215 20% 90%;
+  --color-border-strong: 215 20% 75%;
+
+  --color-input: 0 0% 98%;
+  --color-input-focus: 142 71% 40%;
+  --color-ring: 142 71% 40%;
+
+  /* Legacy Atlas tokens for light mode */
+  --atlas-bg-primary: #ffffff;
+  --atlas-bg-secondary: #f8fafc;
+  --atlas-text-primary: #0f172a;
+  --atlas-text-secondary: #475569;
+  --atlas-text-muted: #64748b;
+  --atlas-border: rgba(15, 23, 42, 0.1);
+}
+
+.light html {
+  background: #ffffff !important;
+}
+
+.light body {
+  background: #ffffff !important;
+  color: hsl(var(--color-foreground)) !important;
+}
+
+.light #root {
+  background: #ffffff !important;
+}
+
+.light ::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.light ::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.2);
+  border: 2px solid #f1f5f9;
+}
+
+.light ::-webkit-scrollbar-thumb:hover {
+  background: rgba(15, 23, 42, 0.3);
+}
+
+.light .glass {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(15, 23, 42, 0.1);
+}
+
+.light .glass-strong {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(15, 23, 42, 0.15);
+}
+
 @theme {
   /* Map CSS variables to Tailwind theme */
   --color-background: hsl(var(--color-background));

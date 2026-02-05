@@ -164,6 +164,10 @@ export const footerConfig = {
       path: "/research/methodology"
     },
     {
+      label: "Privacy Policy",
+      path: "/privacy-policy"
+    },
+    {
       label: "Contribute",
       path: "/contribute"
     },

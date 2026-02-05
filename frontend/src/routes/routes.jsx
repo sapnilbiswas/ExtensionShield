@@ -9,6 +9,7 @@ const ScanResultsPageV2 = React.lazy(() => import("../pages/scanner/ScanResultsP
 const ScanHistoryPage = React.lazy(() => import("../pages/ScanHistoryPage"));
 const EnterprisePage = React.lazy(() => import("../pages/EnterprisePage"));
 const SettingsPage = React.lazy(() => import("../pages/SettingsPage"));
+const PrivacyPolicyPage = React.lazy(() => import("../pages/PrivacyPolicyPage"));
 
 // Research Pages
 const ResearchPage = React.lazy(() => import("../pages/research/ResearchPage"));
@@ -253,6 +254,17 @@ export const routes = [
   {
     path: "/settings",
     element: <SettingsPage />
+  },
+  {
+    path: "/privacy-policy",
+    element: <PrivacyPolicyPage />,
+    seo: {
+      title: "Privacy Policy | ExtensionShield",
+      description: "ExtensionShield Privacy Policy - Learn how we collect, use, and protect your data.",
+      canonical: "/privacy-policy"
+    },
+    priority: 0.5,
+    changefreq: "monthly"
   },
 
   // ============ LEGACY REDIRECTS ============

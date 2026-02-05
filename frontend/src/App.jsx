@@ -2,6 +2,7 @@ import React, { Suspense } from "react";
 import { BrowserRouter as Router, Routes, Route, NavLink, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ScanProvider } from "./context/ScanContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import routes from "./routes/routes";
 import { topNavItems, megaMenuConfig, userMenuItems } from "./nav/navigation";
 import SignInModal from "./components/SignInModal";
@@ -260,10 +261,7 @@ function AppHeader() {
           ) : isAuthenticated && user ? (
             <UserMenu />
           ) : (
-            <>
-              <button className="action-signin" onClick={openSignInModal}>Sign In</button>
-              <NavLink to="/scan" className="action-signup">Get Started</NavLink>
-            </>
+            <button className="action-signin" onClick={openSignInModal}>Sign In</button>
           )}
         </div>
       </div>
@@ -307,19 +305,15 @@ function AppContent() {
 
 // Main App Component
 function App() {
-  React.useEffect(() => {
-    document.documentElement.style.backgroundColor = "#0a0f1a";
-    document.body.style.backgroundColor = "#0a0f1a";
-    document.documentElement.classList.add("dark");
-  }, []);
-
   return (
     <Router>
-      <AuthProvider>
-        <ScanProvider>
-          <AppContent />
-        </ScanProvider>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <ScanProvider>
+            <AppContent />
+          </ScanProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </Router>
   );
 }

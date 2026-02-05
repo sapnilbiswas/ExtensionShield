@@ -1694,6 +1694,10 @@ if STATIC_DIR.exists() and (STATIC_DIR / "assets").exists():
     app.mount("/assets", StaticFiles(directory=STATIC_DIR / "assets"), name="assets")
     # Mount root static files (vite.svg, etc.)
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+    # Mount data files from public/data directory
+    data_dir = STATIC_DIR / "data"
+    if data_dir.exists():
+        app.mount("/data", StaticFiles(directory=data_dir), name="data")
 
 
 # Catch-all route for SPA - must be defined last
@@ -1706,6 +1710,10 @@ async def serve_spa(full_path: str):
     # Don't intercept API routes
     if full_path.startswith("api/"):
         raise HTTPException(status_code=404, detail="API endpoint not found")
+    
+    # Don't intercept data files (should be handled by static mount above)
+    if full_path.startswith("data/"):
+        raise HTTPException(status_code=404, detail="Data file not found")
 
     # Serve index.html for all other routes (SPA routing)
     index_file = STATIC_DIR / "index.html"

@@ -13,13 +13,38 @@ const BenchmarksPage = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
+        // Use base URL from environment or default to empty string for same-origin
+        const baseURL = import.meta.env.BASE_URL || '';
+        
+        // Construct paths - public folder files are served from root in production
+        const trendsUrl = `${baseURL}/data/trends.json`;
+        const benchmarksUrl = `${baseURL}/data/benchmarks.json`;
+
         const [trendsRes, benchmarksRes] = await Promise.all([
-          fetch('/data/trends.json'),
-          fetch('/data/benchmarks.json')
+          fetch(trendsUrl),
+          fetch(benchmarksUrl)
         ]);
 
-        if (!trendsRes.ok || !benchmarksRes.ok) {
-          throw new Error('Failed to load data');
+        if (!trendsRes.ok) {
+          throw new Error(`Failed to load trends data: ${trendsRes.status} ${trendsRes.statusText}`);
+        }
+
+        if (!benchmarksRes.ok) {
+          throw new Error(`Failed to load benchmarks data: ${benchmarksRes.status} ${benchmarksRes.statusText}`);
+        }
+
+        // Check content type before parsing
+        const trendsContentType = trendsRes.headers.get('content-type');
+        const benchmarksContentType = benchmarksRes.headers.get('content-type');
+        
+        if (!trendsContentType?.includes('application/json')) {
+          const text = await trendsRes.text();
+          throw new Error(`Invalid content type for trends.json. Expected JSON, got: ${trendsContentType}. Response: ${text.substring(0, 100)}`);
+        }
+
+        if (!benchmarksContentType?.includes('application/json')) {
+          const text = await benchmarksRes.text();
+          throw new Error(`Invalid content type for benchmarks.json. Expected JSON, got: ${benchmarksContentType}. Response: ${text.substring(0, 100)}`);
         }
 
         const trends = await trendsRes.json();
@@ -30,7 +55,9 @@ const BenchmarksPage = () => {
         setLoading(false);
       } catch (err) {
         console.error('Error loading benchmark data:', err);
-        setError(err.message);
+        // Provide more helpful error message
+        const errorMessage = err.message || 'Failed to load benchmark data. Please check that the data files are available.';
+        setError(errorMessage);
         setLoading(false);
       }
     };

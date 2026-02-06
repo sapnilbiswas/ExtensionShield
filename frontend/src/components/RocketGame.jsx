@@ -13,14 +13,60 @@ const RocketGame = ({ isActive = true, statusLabel = "Running the scan..." }) =>
   const rafRef = useRef(null);
   const keysDownRef = useRef(new Set());
 
-  const [ui, setUi] = useState({ score: 0, best: 0, gameOver: false });
+  // Load best score from localStorage
+  const loadBestScore = () => {
+    try {
+      const stored = localStorage.getItem('rocketGame_bestScore');
+      return stored ? parseInt(stored, 10) : 0;
+    } catch (e) {
+      return 0;
+    }
+  };
+
+  // Load leaderboard from localStorage
+  const loadLeaderboard = () => {
+    try {
+      const stored = localStorage.getItem('rocketGame_leaderboard');
+      return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+      return [];
+    }
+  };
+
+  // Save score to leaderboard
+  const saveToLeaderboard = (score) => {
+    try {
+      const leaderboard = loadLeaderboard();
+      const entry = {
+        score: Math.floor(score),
+        date: new Date().toISOString(),
+        timestamp: Date.now(),
+      };
+      leaderboard.push(entry);
+      // Keep top 10 scores
+      leaderboard.sort((a, b) => b.score - a.score);
+      const top10 = leaderboard.slice(0, 10);
+      localStorage.setItem('rocketGame_leaderboard', JSON.stringify(top10));
+      return top10;
+    } catch (e) {
+      console.error('Failed to save to leaderboard:', e);
+      return [];
+    }
+  };
+
+  const [ui, setUi] = useState({ 
+    score: 0, 
+    best: loadBestScore(), 
+    gameOver: false,
+    leaderboard: loadLeaderboard(),
+  });
 
   const gameRef = useRef({
     startedAt: 0,
     lastTs: 0,
     gameOver: false,
     score: 0,
-    best: 0,
+    best: loadBestScore(),
     rocket: { x: 0, y: 0, w: 30, h: 50, speed: 200 },
     bullets: [],
     targets: [],
@@ -140,6 +186,10 @@ const RocketGame = ({ isActive = true, statusLabel = "Running the scan..." }) =>
     const canvas = canvasRef.current;
     const h = canvas ? canvas.clientHeight : 400;
     
+    // Reload best score and leaderboard
+    g.best = loadBestScore();
+    const leaderboard = loadLeaderboard();
+    
     g.startedAt = performance.now();
     g.lastTs = 0;
     g.gameOver = false;
@@ -150,7 +200,7 @@ const RocketGame = ({ isActive = true, statusLabel = "Running the scan..." }) =>
     g.targets = [];
     g.nextTargetSpawn = 1;
     g.particles = [];
-    setUi((prev) => ({ score: 0, best: prev.best, gameOver: false }));
+    setUi({ score: 0, best: g.best, gameOver: false, leaderboard });
   };
 
   // Main game loop
@@ -311,7 +361,23 @@ const RocketGame = ({ isActive = true, statusLabel = "Running the scan..." }) =>
             g.rocket.y + g.rocket.h > target.y
           ) {
             g.gameOver = true;
-            g.best = Math.max(g.best, g.score);
+            const finalScore = Math.floor(g.score);
+            const newBest = Math.max(g.best, finalScore);
+            g.best = newBest;
+            
+            // Save to localStorage
+            try {
+              localStorage.setItem('rocketGame_bestScore', newBest.toString());
+              const leaderboard = saveToLeaderboard(finalScore);
+              setUi((prev) => ({ 
+                ...prev, 
+                best: newBest,
+                leaderboard: leaderboard,
+                gameOver: true 
+              }));
+            } catch (e) {
+              console.error('Failed to save score:', e);
+            }
             break;
           }
         }
@@ -437,12 +503,23 @@ const RocketGame = ({ isActive = true, statusLabel = "Running the scan..." }) =>
       ctx.fill();
 
       // HUD
+      const currentScore = Math.floor(g.score);
       ctx.fillStyle = "rgba(226, 232, 240, 0.9)";
       ctx.font = "600 14px system-ui, -apple-system, sans-serif";
-      ctx.fillText(`Score: ${Math.floor(g.score)}`, 12, 24);
+      ctx.fillText(`Score: ${currentScore}`, 12, 24);
       ctx.fillStyle = "rgba(148, 163, 184, 0.8)";
       ctx.font = "500 12px system-ui, -apple-system, sans-serif";
       ctx.fillText(`Best: ${Math.floor(g.best)}`, 12, 42);
+      
+      // Show rank if leaderboard exists
+      if (ui.leaderboard && ui.leaderboard.length > 0) {
+        const topScore = ui.leaderboard[0]?.score || 0;
+        if (topScore > 0) {
+          ctx.fillStyle = "rgba(34, 197, 94, 0.8)";
+          ctx.font = "500 11px system-ui, -apple-system, sans-serif";
+          ctx.fillText(`Top: ${topScore}`, 12, 60);
+        }
+      }
 
       // Status label
       ctx.font = "500 12px system-ui, -apple-system, sans-serif";

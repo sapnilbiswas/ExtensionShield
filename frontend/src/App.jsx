@@ -272,6 +272,7 @@ function MainMegamenu() {
   const location = useLocation();
   const [isOpen, setIsOpen] = React.useState(false);
   const menuRef = React.useRef(null);
+  const timeoutRef = React.useRef(null);
   
   const isActive = megaMenuConfig.trigger.matchPaths.some(path => 
     location.pathname.startsWith(path)
@@ -289,6 +290,29 @@ function MainMegamenu() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen]);
 
+  // Cleanup timeout on unmount
+  React.useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleMouseEnter = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    setIsOpen(true);
+  };
+
+  const handleMouseLeave = () => {
+    timeoutRef.current = setTimeout(() => {
+      setIsOpen(false);
+    }, 150); // Small delay to allow moving to dropdown
+  };
+
   const renderIcon = (icon) => {
     if (icon === "github") {
       return (
@@ -301,7 +325,12 @@ function MainMegamenu() {
   };
 
   return (
-    <div className="megamenu-container" ref={menuRef}>
+    <div 
+      className="megamenu-container" 
+      ref={menuRef}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       <button className={`nav-item megamenu-trigger ${isActive ? "active" : ""} ${isOpen ? "open" : ""}`} onClick={() => setIsOpen(!isOpen)}>
         {megaMenuConfig.trigger.label}
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
@@ -310,7 +339,11 @@ function MainMegamenu() {
       </button>
 
       {isOpen && (
-        <div className="megamenu-dropdown">
+        <div 
+          className="megamenu-dropdown"
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
           <div className="megamenu-items-list">
             {megaMenuConfig.items.map((item, idx) => {
               const Element = item.external ? "a" : NavLink;
@@ -345,7 +378,11 @@ function AppHeader() {
     <header className={`atlas-header ${isHomePage ? "transparent" : "solid"}`}>
       <div className="header-container">
         <NavLink to="/" className="header-logo">
-          <ShieldLogo size={32} />
+          <img 
+            src="/logo.png" 
+            alt="ExtensionShield Logo" 
+            className="header-logo-img"
+          />
           <span className="logo-text">ExtensionShield</span>
         </NavLink>
 

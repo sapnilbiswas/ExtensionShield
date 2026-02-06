@@ -1,6 +1,5 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import ShieldLogo from "./ShieldLogo";
 import { footerConfig } from "../nav/navigation";
 import "./Footer.scss";
 
@@ -9,7 +8,11 @@ const Footer = () => {
     <footer className="app-footer">
       <div className="footer-content">
         <div className="footer-brand">
-          <ShieldLogo size={28} />
+          <img 
+            src="/logo.png" 
+            alt="ExtensionShield Logo" 
+            className="footer-logo-img"
+          />
           <span className="brand-extensionshield">ExtensionShield</span>
         </div>
         <p className="footer-disclaimer">

@@ -22,6 +22,7 @@ const PageLoader = () => (
 function UserMenu() {
   const { user, signOut, isLoading } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const [avatarError, setAvatarError] = React.useState(false);
   const menuRef = React.useRef(null);
 
   React.useEffect(() => {
@@ -82,11 +83,25 @@ function UserMenu() {
     return icons[icon] || null;
   };
 
+  const handleAvatarError = () => {
+    setAvatarError(true);
+  };
+
+  // Reset avatar error when user changes
+  React.useEffect(() => {
+    setAvatarError(false);
+  }, [user?.id]);
+
   return (
     <div className="user-menu-container" ref={menuRef}>
       <button className="user-menu-trigger" onClick={() => setIsMenuOpen(!isMenuOpen)} disabled={isLoading}>
-        {user.avatar ? (
-          <img src={user.avatar} alt={user.name} className="user-avatar" />
+        {user.avatar && !avatarError ? (
+          <img 
+            src={user.avatar} 
+            alt={user.name} 
+            className="user-avatar" 
+            onError={handleAvatarError}
+          />
         ) : (
           <div className="user-avatar-fallback">{getInitials(user.name)}</div>
         )}
@@ -100,8 +115,13 @@ function UserMenu() {
         <div className="user-menu-dropdown">
           <div className="menu-header">
             <div className="menu-user-info">
-              {user.avatar ? (
-                <img src={user.avatar} alt={user.name} className="menu-avatar" />
+              {user.avatar && !avatarError ? (
+                <img 
+                  src={user.avatar} 
+                  alt={user.name} 
+                  className="menu-avatar" 
+                  onError={handleAvatarError}
+                />
               ) : (
                 <div className="menu-avatar-fallback">{getInitials(user.name)}</div>
               )}

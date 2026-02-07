@@ -150,86 +150,125 @@ const ScannerPage = () => {
   useEffect(() => {
     const loadScans = async () => {
       setLoading(true);
+      console.log("[ScannerPage] Starting to load scans...");
+      
+      // Safety timeout - force loading to false after 10 seconds
+      const safetyTimeout = setTimeout(() => {
+        console.warn("[ScannerPage] Safety timeout triggered - forcing loading to false");
+        setLoading(false);
+      }, 10000);
+      
       try {
-        const history = await databaseService.getRecentScans(100);
-        // Fetch full details for each scan to get signals data
-        const enrichedScans = await Promise.all(
-          history.map(async (scan) => {
-            try {
-              const fullResult = await databaseService.getScanResult(
-                scan.extension_id || scan.extensionId
-              );
+        // Add timeout wrapper to prevent hanging
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error("Request timeout")), 30000)
+        );
+        
+        const historyPromise = databaseService.getRecentScans(100);
+        const history = await Promise.race([historyPromise, timeoutPromise]);
+        
+        console.log("[ScannerPage] Received history:", history?.length || 0, "scans");
+        
+        if (!history || history.length === 0) {
+          console.log("[ScannerPage] No recent scans found");
+          setAllScans([]);
+          setLoading(false);
+          return;
+        }
 
-              // Parse metadata if it's a string (JSON)
-              let metadata = {};
-              if (fullResult?.metadata) {
-                if (typeof fullResult.metadata === "string") {
-                  try {
-                    metadata = JSON.parse(fullResult.metadata);
-                  } catch (e) {
-                    metadata = fullResult.metadata;
-                  }
-                } else {
+        // Fetch full details for each scan to get signals data
+        // Use Promise.allSettled to prevent one failure from blocking all
+        const enrichmentPromises = history.map(async (scan) => {
+          try {
+            // Add timeout for individual scan result fetches
+            const resultPromise = databaseService.getScanResult(
+              scan.extension_id || scan.extensionId
+            );
+            const timeoutPromise = new Promise((_, reject) =>
+              setTimeout(() => reject(new Error("Scan result timeout")), 5000)
+            );
+            
+            const fullResult = await Promise.race([resultPromise, timeoutPromise]);
+
+            // Parse metadata if it's a string (JSON)
+            let metadata = {};
+            if (fullResult?.metadata) {
+              if (typeof fullResult.metadata === "string") {
+                try {
+                  metadata = JSON.parse(fullResult.metadata);
+                } catch (e) {
                   metadata = fullResult.metadata;
                 }
+              } else {
+                metadata = fullResult.metadata;
               }
+            }
 
-              // Enrich with signals
-              const enriched = enrichScanWithSignals(
-                {
-                  ...scan,
-                  extension_name:
-                    scan.extension_name ||
-                    scan.extensionName ||
-                    metadata?.title ||
-                    scan.extension_id ||
-                    scan.extensionId,
-                  extension_id: scan.extension_id || scan.extensionId,
-                  timestamp: scan.timestamp,
-                  user_count: metadata?.user_count || metadata?.userCount || null,
-                  rating: metadata?.rating_value || metadata?.rating || null,
-                  rating_count:
-                    metadata?.rating_count ||
-                    metadata?.ratings_count ||
-                    metadata?.ratingCount ||
-                    null,
-                  logo: metadata?.logo || null,
-                },
-                fullResult
-              );
-
-              return enriched;
-            } catch (err) {
-              console.error(`Error loading data for ${scan.extension_id}:`, err);
-              return {
+            // Enrich with signals
+            const enriched = enrichScanWithSignals(
+              {
                 ...scan,
                 extension_name:
                   scan.extension_name ||
                   scan.extensionName ||
+                  metadata?.title ||
                   scan.extension_id ||
                   scan.extensionId,
                 extension_id: scan.extension_id || scan.extensionId,
                 timestamp: scan.timestamp,
-                user_count: null,
-                rating: null,
-                rating_count: null,
-                logo: null,
-                score: 0,
-                risk_level: "UNKNOWN",
-                findings_count: 0,
-                signals: {
-                  code_signal: { level: SIGNAL_LEVELS.OK, label: "—" },
-                  perms_signal: { level: SIGNAL_LEVELS.OK, label: "—" },
-                  intel_signal: { level: SIGNAL_LEVELS.OK, label: "—" },
-                },
-              };
-            }
-          })
-        );
+                user_count: metadata?.user_count || metadata?.userCount || null,
+                rating: metadata?.rating_value || metadata?.rating || null,
+                rating_count:
+                  metadata?.rating_count ||
+                  metadata?.ratings_count ||
+                  metadata?.ratingCount ||
+                  null,
+                logo: metadata?.logo || null,
+              },
+              fullResult
+            );
+
+            return enriched;
+          } catch (err) {
+            console.error(`Error loading data for ${scan.extension_id}:`, err);
+            return {
+              ...scan,
+              extension_name:
+                scan.extension_name ||
+                scan.extensionName ||
+                scan.extension_id ||
+                scan.extensionId,
+              extension_id: scan.extension_id || scan.extensionId,
+              timestamp: scan.timestamp,
+              user_count: null,
+              rating: null,
+              rating_count: null,
+              logo: null,
+              score: scan.security_score || 0,
+              risk_level: scan.risk_level || "UNKNOWN",
+              findings_count: scan.total_findings || 0,
+              signals: {
+                code_signal: { level: SIGNAL_LEVELS.OK, label: "—" },
+                perms_signal: { level: SIGNAL_LEVELS.OK, label: "—" },
+                intel_signal: { level: SIGNAL_LEVELS.OK, label: "—" },
+              },
+            };
+          }
+        });
+        
+        const results = await Promise.allSettled(enrichmentPromises);
+        const enrichedScans = results
+          .map((result) => result.status === "fulfilled" ? result.value : null)
+          .filter(Boolean);
+        
+        console.log("[ScannerPage] Enriched scans:", enrichedScans.length);
         setAllScans(enrichedScans);
       } catch (error) {
-        console.error("Failed to load scans:", error);
+        console.error("[ScannerPage] Failed to load scans:", error);
+        setAllScans([]);
       } finally {
+        clearTimeout(safetyTimeout);
+        console.log("[ScannerPage] Setting loading to false");
         setLoading(false);
       }
     };

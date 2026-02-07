@@ -14,6 +14,7 @@ from extension_shield.core.extension_downloader import ExtensionDownloader
 from extension_shield.core.manifest_parser import ManifestParser
 from extension_shield.core.extension_analyzer import ExtensionAnalyzer
 from extension_shield.core.summary_generator import SummaryGenerator
+from extension_shield.core.impact_analyzer import ImpactAnalyzer
 from extension_shield.utils.extension import (
     extract_extension_crx,
     cleanup_extension_dir,
@@ -29,6 +30,7 @@ from extension_shield.workflow.node_types import (
     MANIFEST_PARSER_NODE,
     EXTENSION_ANALYZER_NODE,
     SUMMARY_GENERATION_NODE,
+    IMPACT_ANALYSIS_NODE,
     GOVERNANCE_NODE,
     CLEANUP_NODE,
 )
@@ -324,6 +326,9 @@ def summary_generation_node(state: WorkflowState) -> Command:
     """
     analysis_results = state.get("analysis_results")
     manifest = state.get("manifest_data")
+    metadata = state.get("extension_metadata")
+    scan_id = state.get("workflow_id")
+    extension_id = state.get("extension_id") or scan_id
 
     if not analysis_results:
         logger.warning("No analysis results available for summary generation")
@@ -335,7 +340,13 @@ def summary_generation_node(state: WorkflowState) -> Command:
     try:
         logger.info("Generating executive summary")
         generator = SummaryGenerator()
-        executive_summary = generator.generate(analysis_results=analysis_results, manifest=manifest)
+        executive_summary = generator.generate(
+            analysis_results=analysis_results,
+            manifest=manifest,
+            metadata=metadata,
+            scan_id=scan_id,
+            extension_id=extension_id,
+        )
 
     except Exception as exc:
         logger.exception("Summary generation failed")
@@ -348,8 +359,60 @@ def summary_generation_node(state: WorkflowState) -> Command:
         )
 
     return Command(
-        goto=GOVERNANCE_NODE,
+        goto=IMPACT_ANALYSIS_NODE,
         update={"executive_summary": executive_summary},
+    )
+
+
+def impact_analysis_node(state: WorkflowState) -> Command:
+    """
+    Node that generates impact analysis buckets from capabilities and scope.
+
+    Args:
+        state (WorkflowState): The current state of the workflow.
+
+    Returns:
+        Command: A command indicating the next step in the workflow.
+    """
+    analysis_results = state.get("analysis_results") or {}
+    manifest = state.get("manifest_data") or {}
+    scan_id = state.get("workflow_id")
+    extension_id = state.get("extension_id") or scan_id
+
+    if not manifest:
+        logger.warning("No manifest data available for impact analysis")
+        return Command(
+            goto=GOVERNANCE_NODE,
+            update={"analysis_results": analysis_results},
+        )
+
+    try:
+        logger.info("Generating impact analysis")
+        analyzer = ImpactAnalyzer()
+        impact_analysis = analyzer.generate(
+            analysis_results=analysis_results,
+            manifest=manifest,
+            extension_id=extension_id,
+        )
+    except Exception as exc:
+        logger.exception("Impact analysis failed")
+        return Command(
+            goto=GOVERNANCE_NODE,
+            update={
+                "analysis_results": analysis_results,
+                "error": str(exc),
+            },
+        )
+
+    updated_results = dict(analysis_results)
+    updated_results["impact_analysis"] = impact_analysis
+
+    return Command(
+        goto=GOVERNANCE_NODE,
+        update={
+            "analysis_results": updated_results,
+            "impact_analysis": impact_analysis,
+        },
     )
 
 

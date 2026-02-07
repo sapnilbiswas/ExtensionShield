@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import stanImage from "../assets/stan.png";
+import stanImage from "../assets/stanzin.png";
 import "./AboutUsPage.scss";
 
 const AboutUsPage = () => {

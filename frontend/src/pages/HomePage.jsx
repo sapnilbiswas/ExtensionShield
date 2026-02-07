@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
+import SEOHead from "../components/SEOHead";
 import "./HomePage.scss";
 
 // Static configuration - defined outside component to prevent recreation
@@ -272,26 +272,89 @@ const HomePage = () => {
     }
   };
 
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "ExtensionShield",
+    "url": "https://extensionshield.com",
+    "logo": "https://extensionshield.com/logo.png",
+    "description": "Open source Chrome extension security scanner",
+    "sameAs": [
+      "https://github.com/Stanzin7/ExtensionShield"
+    ]
+  };
+
+  const softwareAppSchema = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "ExtensionShield",
+    "applicationCategory": "SecurityApplication",
+    "operatingSystem": "Web",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "description": "Free Chrome extension security scanner that analyzes extensions for malware, privacy risks, and compliance issues.",
+    "url": "https://extensionshield.com/scan"
+  };
+
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How does Chrome extension security scanning work?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "ExtensionShield analyzes Chrome extensions using static code analysis (SAST), permission analysis, and threat intelligence to generate a comprehensive risk score. We check for malware, privacy risks, and compliance issues."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What is an extension risk score?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The extension risk score is a numerical rating (0-100) that indicates the overall security risk of a Chrome extension. It's calculated based on code analysis, permission requests, and threat intelligence signals."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I scan extensions before installing them?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes! ExtensionShield allows you to scan any Chrome extension from the Chrome Web Store before installing it. Simply paste the extension URL or Chrome Web Store ID to get an instant security analysis."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What permissions should I be concerned about?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Be cautious of extensions requesting broad permissions like 'Read and change all your data on all websites', 'Access your browsing history', or 'Manage your downloads'. Learn more about extension permissions in our glossary."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How accurate is the extension security scanner?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "ExtensionShield uses multiple security analysis techniques including static code analysis, permission analysis, and threat intelligence from VirusTotal. Our methodology is transparent and documented in our research section."
+        }
+      }
+    ]
+  };
+
   return (
     <>
-      <Helmet>
-        <title>ExtensionShield - Chrome Extension Security Scanner</title>
-        <meta name="description" content="Analyze Chrome extensions for hidden threats, malware, and privacy risks. Free security scanning powered by AI and static analysis." />
-        <link rel="canonical" href="https://extensionshield.com/" />
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Organization",
-            "name": "ExtensionShield",
-            "url": "https://extensionshield.com",
-            "logo": "https://extensionshield.com/logo.png",
-            "description": "Open source Chrome extension security scanner",
-            "sameAs": [
-              "https://github.com/Stanzin7/ExtensionShield"
-            ]
-          })}
-        </script>
-      </Helmet>
+      <SEOHead
+        title="ExtensionShield - Chrome Extension Security Scanner"
+        description="Analyze Chrome extensions for hidden threats, malware, and privacy risks. Free security scanning powered by AI and static analysis."
+        pathname="/"
+        ogType="website"
+        schema={[organizationSchema, softwareAppSchema, faqSchema]}
+      />
       
       <div className="home-page">
         {/* Hero Section */}

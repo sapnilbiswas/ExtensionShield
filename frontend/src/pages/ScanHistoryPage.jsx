@@ -10,6 +10,7 @@ import {
   SIGNAL_LEVELS
 } from "../utils/signalMapper";
 import { EXTENSION_ICON_PLACEHOLDER } from "../utils/constants";
+import SEOHead from "../components/SEOHead";
 import "./ScanHistoryPage.scss";
 
 // Tooltip component for signal chips
@@ -382,9 +383,16 @@ const ScanHistoryPage = () => {
   const isPublicView = !isAuthenticated;
 
   return (
-    <div className="history-page">
-      {/* Background Effects */}
-      <div className="history-bg">
+    <>
+      <SEOHead
+        title="Scan History"
+        description="View your Chrome extension scan history and past security reports. Track risk scores, findings, and monitor extension security over time."
+        pathname="/scan/history"
+        ogType="website"
+      />
+      <div className="history-page">
+        {/* Background Effects */}
+        <div className="history-bg">
         <div className="bg-gradient" />
         <div className="bg-grid" />
       </div>
@@ -720,7 +728,8 @@ const ScanHistoryPage = () => {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

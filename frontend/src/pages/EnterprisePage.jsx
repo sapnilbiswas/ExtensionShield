@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import realScanService from "../services/realScanService";
+import SEOHead from "../components/SEOHead";
 import "./EnterprisePage.scss";
 
 const EnterprisePage = () => {
@@ -51,8 +52,55 @@ const EnterprisePage = () => {
     }
   };
 
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is enterprise extension management?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Enterprise extension management allows IT and security teams to monitor, govern, and enforce policies for browser extensions used across their organization. This includes risk scoring, compliance monitoring, and automated alerting."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How does extension governance work?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Extension governance enables organizations to create allow/block lists, enforce security policies, and generate audit-ready reports. Administrators can monitor extension usage and receive alerts when risk levels change."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What compliance features are available?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "ExtensionShield Enterprise provides policy packs for common compliance frameworks, audit-ready exports, and detailed reporting on extension security, privacy, and governance signals."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I monitor extensions automatically?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes! Enterprise plans include automatic monitoring and re-scanning when extensions are updated. You'll receive alerts when risk scores change or new security issues are detected."
+        }
+      }
+    ]
+  };
+
   return (
-    <div className="enterprise-page">
+    <>
+      <SEOHead
+        title="Enterprise Extension Security & Governance Platform"
+        description="Enterprise-grade Chrome extension security with monitoring, governance, and compliance. Policy enforcement, automated alerting, and audit-ready exports for IT and security teams."
+        pathname="/enterprise"
+        ogType="website"
+        schema={faqSchema}
+      />
+      <div className="enterprise-page">
       <div className="enterprise-bg">
         <div className="bg-gradient" />
         <div className="bg-grid" />
@@ -140,7 +188,8 @@ const EnterprisePage = () => {
           </form>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

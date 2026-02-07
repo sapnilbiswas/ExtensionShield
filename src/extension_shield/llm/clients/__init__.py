@@ -7,7 +7,39 @@ from extension_shield.llm.clients.provider_type import LLMProviderType
 
 load_dotenv()
 
-LLM_PROVIDER = LLMProviderType(os.getenv("LLM_PROVIDER", LLMProviderType.WATSONX.value))
+
+def _get_current_provider() -> LLMProviderType:
+    """Get the current LLM provider from environment, dynamically reading each time.
+    
+    Priority:
+    1. LLM_PROVIDER environment variable
+    2. First provider in LLM_FALLBACK_CHAIN if set
+    3. Default to WATSONX
+    """
+    # First check explicit LLM_PROVIDER
+    provider_str = os.getenv("LLM_PROVIDER")
+    if provider_str:
+        try:
+            return LLMProviderType(provider_str.lower())
+        except ValueError:
+            pass  # Fall through to fallback chain
+    
+    # Check LLM_FALLBACK_CHAIN for first provider
+    fallback_chain = os.getenv("LLM_FALLBACK_CHAIN")
+    if fallback_chain:
+        first_provider = fallback_chain.split(",")[0].strip().lower()
+        try:
+            return LLMProviderType(first_provider)
+        except ValueError:
+            pass  # Fall through to default
+    
+    # Default to WatsonX
+    return LLMProviderType.WATSONX
+
+
+# For backward compatibility, keep LLM_PROVIDER as a property that can be accessed
+# but prefer using _get_current_provider() for dynamic access
+LLM_PROVIDER = _get_current_provider()
 
 
 def _get_base_llm_settings(
@@ -18,7 +50,7 @@ def _get_base_llm_settings(
     Args:
         model_name: The name of the model to use.
         model_parameters: Optional model parameters.
-        provider: Optional provider override. If None, uses global LLM_PROVIDER.
+        provider: Optional provider override. If None, dynamically reads from environment.
 
     Returns:
         Dictionary of settings for the LLM client.
@@ -26,7 +58,8 @@ def _get_base_llm_settings(
     if model_parameters is None:
         model_parameters = {}
 
-    current_provider = provider if provider is not None else LLM_PROVIDER
+    # Always dynamically read the provider to pick up env changes
+    current_provider = provider if provider is not None else _get_current_provider()
 
     if current_provider == LLMProviderType.OLLAMA:
         parameters = {
@@ -131,7 +164,8 @@ def get_chat_llm_client(
     Returns:
         The LLM client instance.
     """
-    current_provider = provider_override if provider_override is not None else LLM_PROVIDER
+    # Always dynamically read the provider to pick up env changes
+    current_provider = provider_override if provider_override is not None else _get_current_provider()
 
     if current_provider == LLMProviderType.OLLAMA:
         from langchain_ollama import (

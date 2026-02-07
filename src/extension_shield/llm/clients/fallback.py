@@ -50,8 +50,8 @@ def _parse_fallback_chain() -> List[LLMProviderType]:
         except ValueError:
             logger.warning(f"Invalid LLM_PROVIDER: {primary_provider}, using default")
 
-    # Default to watsonx (current behavior)
-    return [LLMProviderType.WATSONX]
+    # Default to watsonx, then openai (ollama removed)
+    return [LLMProviderType.WATSONX, LLMProviderType.OPENAI]
 
 
 def _invoke_with_timeout(

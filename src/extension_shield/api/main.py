@@ -472,6 +472,7 @@ async def run_analysis_workflow(url: str, extension_id: str):
                 "virustotal_analysis": analysis_results.get("virustotal_analysis") or {},
                 "entropy_analysis": analysis_results.get("entropy_analysis") or {},
                 "summary": final_state.get("executive_summary") or {},
+                "impact_analysis": analysis_results.get("impact_analysis") or {},
                 "extracted_path": final_state.get("extension_dir"),
                 "extracted_files": extracted_files,
                 # V2 scoring - overall_security_score for backward compatibility
@@ -1487,6 +1488,7 @@ async def get_scan_results(extension_id: str, http_request: Request):
             "sast_results": results.get("sast_results", {}),
             "webstore_analysis": results.get("webstore_analysis", {}),
             "summary": results.get("summary", {}),
+            "impact_analysis": results.get("impact_analysis", {}),
             "extracted_path": results.get("extracted_path"),
             "extracted_files": results.get("extracted_files", []),
             "overall_security_score": results.get("security_score", 0),

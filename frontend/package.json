@@ -14,6 +14,10 @@
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
     "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
     "generate:sitemap": "node scripts/generate-sitemap.js",
+    "seo:test": "node scripts/seo_smoke_test.mjs --prod",
+    "seo:test:local": "node scripts/seo_smoke_test.mjs --local",
+    "seo:prod:reality": "node scripts/seo_prod_reality_check.mjs",
+    "seo:prod:reality:scanner": "REDIRECT_DOMAINS=extensionscanner.com node scripts/seo_prod_reality_check.mjs",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage"
@@ -50,6 +54,7 @@
     "jsdom": "^23.0.1",
     "lucide-react": "^0.562.0",
     "postcss": "^8.5.6",
+    "playwright": "^1.49.0",
     "prettier": "^3.4.2",
     "sass": "^1.97.2",
     "tailwind-merge": "^3.4.0",

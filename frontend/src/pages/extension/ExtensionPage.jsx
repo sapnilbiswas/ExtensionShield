@@ -1,6 +1,7 @@
 import React from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
+import { normalizeExtensionId } from "../../utils/extensionId";
 import "./ExtensionPage.scss";
 
 /**
@@ -12,36 +13,77 @@ import "./ExtensionPage.scss";
  * to view specific version reports.
  */
 const ExtensionPage = () => {
-  const { extensionId } = useParams();
+  const { extensionId: rawExtensionId } = useParams();
   const navigate = useNavigate();
+  
+  // Normalize extension ID from URL params
+  const extensionId = normalizeExtensionId(rawExtensionId || '');
+  
   const [loading, setLoading] = React.useState(true);
   const [extension, setExtension] = React.useState(null);
   const [error, setError] = React.useState(null);
 
   React.useEffect(() => {
+    // Show error if extension ID is invalid
+    if (!extensionId) {
+      setError("Invalid extension ID format. Extension IDs must be exactly 32 characters (a-p).");
+      setLoading(false);
+      return;
+    }
+
+    let isMounted = true;
+    
     // Fetch extension data from API
     const fetchExtension = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/extension/${extensionId}`);
+        
+        // Safety timeout
+        const safetyTimeout = setTimeout(() => {
+          if (isMounted) {
+            setLoading(false);
+          }
+        }, 3000);
+
+        // Request timeout
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Request timeout')), 5000)
+        );
+        
+        const fetchPromise = fetch(`/api/extension/${extensionId}`);
+        const response = await Promise.race([fetchPromise, timeoutPromise]);
+        
         if (!response.ok) {
           if (response.status === 404) {
-            setError("Extension not found. It may not have been scanned yet.");
+            if (isMounted) {
+              setError("Extension not found. It may not have been scanned yet.");
+            }
           } else {
             throw new Error("Failed to fetch extension data");
           }
           return;
         }
+        
         const data = await response.json();
-        setExtension(data);
+        if (isMounted) {
+          setExtension(data);
+        }
       } catch (err) {
-        setError("Failed to load extension data. Please try again.");
+        if (isMounted) {
+          setError(err.message || "Failed to load extension data. Please try again.");
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchExtension();
+
+    return () => {
+      isMounted = false;
+    };
   }, [extensionId]);
 
   if (loading) {

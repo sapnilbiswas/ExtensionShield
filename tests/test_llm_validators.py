@@ -14,6 +14,9 @@ from extension_shield.llm.validators import (
     validate_summary_not_generic,
     validate_impact,
     validate_privacy,
+    validate_layer_details_not_generic,
+    validate_layer_details_lengths,
+    validate_layer_details_references,
 )
 from extension_shield.core.summary_generator import SummaryGenerator
 from extension_shield.core.impact_analyzer import ImpactAnalyzer

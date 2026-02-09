@@ -7,6 +7,9 @@ layer_details_generation: |
     You are ExtensionShield generating human-friendly explanations for each layer (Security, Privacy, Governance) based on analysis results.
     
     CRITICAL RULES:
+    - Use PLAIN LANGUAGE that non-technical users can understand
+    - AVOID technical jargon, code terms, and IT terminology
+    - Write like you're explaining to a friend, not a developer
     - NEVER use generic filler like "score is based on", "this analysis", "capabilities indicate", "review the notes", etc.
     - Every bullet point MUST cite a concrete input signal by name:
       * Permission names (cookies, webRequest, activeTab, etc.)
@@ -18,8 +21,15 @@ layer_details_generation: |
       * MEDIUM/HIGH risk: direct, clear warnings
       * BLOCK: urgent, serious language
     - If no concrete signal exists for a bullet, return "" (empty string) - frontend will filter them out
-    - LENGTH LIMITS: one_liner <= 120 chars, bullets <= 90 chars each
+    - LENGTH LIMITS: one_liner <= 150 chars, bullets <= 120 chars each (more natural length)
     - Output ONLY valid JSON
+    
+    EXAMPLES:
+    BAD: "The extension's code analysis reveals a dynamic code execution vulnerability in the background script."
+    GOOD: "The extension can run code dynamically, which could be dangerous if misused."
+    
+    BAD: "SAST findings indicate high severity issues in the codebase."
+    GOOD: "Code analysis found serious security problems that need attention."
 
   user: |
     Security Layer (score: {{ security_score }}, risk: {{ security_risk_level }}):
@@ -42,11 +52,12 @@ layer_details_generation: |
     - Manifest: {{ manifest_json }}
 
     Generate explanations for each layer:
-    - one_liner: One sentence summary (<= 120 chars) of layer's main concern
-    - key_points: Up to 4 bullets (<= 90 chars each) explaining key findings with specific signals
-    - what_to_watch: Up to 3 bullets (<= 90 chars each) highlighting what users should monitor
+    - one_liner: One sentence summary (<= 150 chars) of layer's main concern in plain language
+    - key_points: Up to 4 bullets (<= 120 chars each) explaining key findings with specific signals, using plain language
+    - what_to_watch: Up to 3 bullets (<= 120 chars each) highlighting what users should monitor, using plain language
     
     For each bullet, MUST reference at least one concrete signal. If no signal available, use empty string.
+    Write in a conversational, easy-to-understand style. Avoid technical terms unless necessary.
 
   response_schema:
     type: object
@@ -56,45 +67,45 @@ layer_details_generation: |
         type: object
         required: [one_liner, key_points, what_to_watch]
         properties:
-          one_liner: { type: string, maxLength: 120 }
+          one_liner: { type: string, maxLength: 150 }
           key_points:
             type: array
-            items: { type: string, maxLength: 90 }
+            items: { type: string, maxLength: 120 }
             minItems: 0
             maxItems: 4
           what_to_watch:
             type: array
-            items: { type: string, maxLength: 90 }
+            items: { type: string, maxLength: 120 }
             minItems: 0
             maxItems: 3
       privacy:
         type: object
         required: [one_liner, key_points, what_to_watch]
         properties:
-          one_liner: { type: string, maxLength: 120 }
+          one_liner: { type: string, maxLength: 150 }
           key_points:
             type: array
-            items: { type: string, maxLength: 90 }
+            items: { type: string, maxLength: 120 }
             minItems: 0
             maxItems: 4
           what_to_watch:
             type: array
-            items: { type: string, maxLength: 90 }
+            items: { type: string, maxLength: 120 }
             minItems: 0
             maxItems: 3
       governance:
         type: object
         required: [one_liner, key_points, what_to_watch]
         properties:
-          one_liner: { type: string, maxLength: 120 }
+          one_liner: { type: string, maxLength: 150 }
           key_points:
             type: array
-            items: { type: string, maxLength: 90 }
+            items: { type: string, maxLength: 120 }
             minItems: 0
             maxItems: 4
           what_to_watch:
             type: array
-            items: { type: string, maxLength: 90 }
+            items: { type: string, maxLength: 120 }
             minItems: 0
             maxItems: 3
 

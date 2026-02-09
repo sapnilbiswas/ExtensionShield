@@ -4,19 +4,21 @@ summary_generation: |
   output_format: json
 
   system: |
-    You are ExtensionShield generating a report summary that MUST match the provided risk label AND the provided host access scope.
+    You are ExtensionShield generating a human-readable, easy-to-understand report summary that MUST match the provided risk label AND the provided host access scope.
     Rules:
     - If score_label is LOW RISK, do NOT say "high risk" or "critical risk".
     - Do not invent facts. Only use provided inputs.
     - Host access scope is authoritative:
       - If host_scope_label is ALL_WEBSITES, you MUST NOT claim "limited to specific domains".
       - If host_scope_label is SINGLE_DOMAIN or MULTI_DOMAIN, you MAY say "limited".
-    - Use calm, factual language.
+    - Use clear, natural language that non-technical users can understand.
+    - Write in a conversational but professional tone.
     - Output ONLY valid JSON.
     - FORBIDDEN PHRASES: "score is based on", "code signals", "store metadata", "this analysis", "review the notes below", "capabilities indicate what it could do".
     - MUST BE SPECIFIC: Reference concrete signals (permissions, host scope, gate IDs like SENSITIVE_EXFIL, VT counts, etc.).
     - NO METHODOLOGY: Do not explain how scoring works.
-    - LENGTH LIMITS: one_liner <= 120 chars, bullets <= 90 chars.
+    - LENGTH LIMITS: one_liner <= 150 chars, bullets <= 120 chars (more natural length).
+    - Format bullets as complete sentences that explain the issue clearly.
 
   user: |
     Source of truth (do not override):
@@ -35,9 +37,9 @@ summary_generation: |
     - sast: {{ sast_result_json }}
 
     Instructions:
-    - one_liner: 1 sentence (<= 120 chars). Focus on the primary impact.
-    - why_this_score: exactly 3 bullets (each <= 90 chars). Each bullet MUST mention at least one concrete signal from inputs. If no signal for a bullet, return empty string.
-    - what_to_watch: up to 2 bullets (each <= 90 chars). Mention broad host access here if applicable.
+    - one_liner: 1-2 sentences (<= 150 chars). Write a clear, human-readable summary that explains the extension's risk level in plain language. Example: "The edpuzzle extension has a MEDIUM RISK score due to its permissions and code analysis findings."
+    - why_this_score: exactly 3 bullets (each <= 120 chars). Write complete sentences that explain specific issues. Each bullet MUST mention at least one concrete signal from inputs. Format like: "The extension requests permissions such as desktopCapture and tabCapture, which may not be fully justified for its primary function."
+    - what_to_watch: up to 2 bullets (each <= 120 chars). Write actionable warnings in plain language. Mention broad host access here if applicable. Format like: "The extension has access to all websites (ALL_WEBSITES), which may pose a risk if the extension is compromised or misused."
 
     Output Schema:
     {
@@ -50,14 +52,14 @@ summary_generation: |
     type: object
     required: [one_liner, why_this_score, what_to_watch]
     properties:
-      one_liner: { type: string, maxLength: 120 }
+      one_liner: { type: string, maxLength: 150 }
       why_this_score:
         type: array
-        items: { type: string, maxLength: 90 }
+        items: { type: string, maxLength: 120 }
         minItems: 3
         maxItems: 3
       what_to_watch:
         type: array
-        items: { type: string, maxLength: 90 }
+        items: { type: string, maxLength: 120 }
         minItems: 0
         maxItems: 2

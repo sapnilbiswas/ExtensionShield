@@ -1,0 +1,100 @@
+layer_details_generation: |
+  name: layer_details_generation
+  version: 1
+  output_format: json
+
+  system: |
+    You are ExtensionShield generating human-friendly explanations for each layer (Security, Privacy, Governance) based on analysis results.
+    
+    CRITICAL RULES:
+    - NEVER use generic filler like "score is based on", "this analysis", "capabilities indicate", "review the notes", etc.
+    - Every bullet point MUST cite a concrete input signal by name:
+      * Permission names (cookies, webRequest, activeTab, etc.)
+      * Host patterns (<all_urls>, https://*/*/*, etc.)
+      * Gate IDs (CRITICAL_SAST, SENSITIVE_EXFIL, PURPOSE_MISMATCH, etc.)
+      * Specific rule IDs or check names from analysis
+    - Tone MUST match the layer's risk level:
+      * LOW risk: calm, reassuring language
+      * MEDIUM/HIGH risk: direct, clear warnings
+      * BLOCK: urgent, serious language
+    - If no concrete signal exists for a bullet, return "" (empty string) - frontend will filter them out
+    - LENGTH LIMITS: one_liner <= 120 chars, bullets <= 90 chars each
+    - Output ONLY valid JSON
+
+  user: |
+    Security Layer (score: {{ security_score }}, risk: {{ security_risk_level }}):
+    Factors: {{ security_factors_json }}
+    Gates: {{ security_gates_json }}
+    
+    Privacy Layer (score: {{ privacy_score }}, risk: {{ privacy_risk_level }}):
+    Factors: {{ privacy_factors_json }}
+    Gates: {{ privacy_gates_json }}
+    
+    Governance Layer (score: {{ governance_score }}, risk: {{ governance_risk_level }}):
+    Factors: {{ governance_factors_json }}
+    Gates: {{ governance_gates_json }}
+    
+    Analysis Context:
+    - Permissions: {{ permissions_summary_json }}
+    - Host Access: {{ host_access_summary_json }}
+    - SAST Results: {{ sast_result_json }}
+    - Network Evidence: {{ network_evidence_json }}
+    - Manifest: {{ manifest_json }}
+
+    Generate explanations for each layer:
+    - one_liner: One sentence summary (<= 120 chars) of layer's main concern
+    - key_points: Up to 4 bullets (<= 90 chars each) explaining key findings with specific signals
+    - what_to_watch: Up to 3 bullets (<= 90 chars each) highlighting what users should monitor
+    
+    For each bullet, MUST reference at least one concrete signal. If no signal available, use empty string.
+
+  response_schema:
+    type: object
+    required: [security, privacy, governance]
+    properties:
+      security:
+        type: object
+        required: [one_liner, key_points, what_to_watch]
+        properties:
+          one_liner: { type: string, maxLength: 120 }
+          key_points:
+            type: array
+            items: { type: string, maxLength: 90 }
+            minItems: 0
+            maxItems: 4
+          what_to_watch:
+            type: array
+            items: { type: string, maxLength: 90 }
+            minItems: 0
+            maxItems: 3
+      privacy:
+        type: object
+        required: [one_liner, key_points, what_to_watch]
+        properties:
+          one_liner: { type: string, maxLength: 120 }
+          key_points:
+            type: array
+            items: { type: string, maxLength: 90 }
+            minItems: 0
+            maxItems: 4
+          what_to_watch:
+            type: array
+            items: { type: string, maxLength: 90 }
+            minItems: 0
+            maxItems: 3
+      governance:
+        type: object
+        required: [one_liner, key_points, what_to_watch]
+        properties:
+          one_liner: { type: string, maxLength: 120 }
+          key_points:
+            type: array
+            items: { type: string, maxLength: 90 }
+            minItems: 0
+            maxItems: 4
+          what_to_watch:
+            type: array
+            items: { type: string, maxLength: 90 }
+            minItems: 0
+            maxItems: 3
+

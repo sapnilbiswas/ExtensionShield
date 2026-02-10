@@ -17,8 +17,9 @@ Essential production and deployment scripts for ExtensionShield.
 
 ### 🗄️ Database
 - **`supabase_push_env.sh`** - Same link + db push for **staging** and **prod** (run for each environment)
-- **`run_supabase_migrations.py`** - Runs Supabase migrations (used by start_api.sh when CLI not used)
-- **`lint_migrations.py`** - Validates migration files
+- **`run_supabase_migrations.py`** - Runs Supabase migrations when Supabase CLI not used (e.g. DATABASE_URL in CI)
+- **`validate_postgres_local.py`** - Validates local dev is reading from Supabase Postgres (`make validate-postgres`)
+- **`lint_migrations.py`** - Validates migration filenames and order
 
 ## 🧹 Cleanup Summary
 

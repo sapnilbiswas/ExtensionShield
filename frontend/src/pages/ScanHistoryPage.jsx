@@ -179,18 +179,21 @@ const ScanHistoryPage = () => {
         );
 
         let history;
-        if (SHOW_TABLE_WITHOUT_SIGN_IN && !isAuthenticated) {
-          // Testing: use /api/recent (no auth) - searches Postgres via ?search= param
+        if (isAuthenticated) {
+          // Authenticated: use user-scoped /api/history (user_scan_history joined with scan_results)
+          // Pass accessToken for Bearer auth; backend returns 401 if missing → we get []
+          history = await Promise.race([
+            databaseService.getScanHistory(100, accessToken),
+            timeoutPromise
+          ]);
+        } else if (SHOW_TABLE_WITHOUT_SIGN_IN) {
+          // Unauthenticated: use /api/recent (global recent scans; searches Postgres via ?search=)
           history = await Promise.race([
             databaseService.getRecentScans(25, debouncedSearch),
             timeoutPromise
           ]);
         } else {
-          const token = isAuthenticated ? accessToken : undefined;
-          history = await Promise.race([
-            databaseService.getScanHistory(100, token),
-            timeoutPromise
-          ]);
+          history = [];
         }
         
         // Load dashboard stats for charts (best-effort, don't block)

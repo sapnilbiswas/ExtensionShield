@@ -5,6 +5,7 @@ Provides REST API endpoints for the frontend to trigger extension analysis
 and retrieve results.
 """
 
+import base64
 import os
 from pathlib import Path
 
@@ -642,6 +643,25 @@ _settings = get_settings()
 STORAGE_PATH = _settings.extension_storage_path
 RESULTS_DIR = _settings.paths.results_dir  # Convert to absolute path
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+
+# Base64 SVG placeholder for extension icons when local file is missing (e.g. ephemeral storage on Railway)
+_EXTENSION_ICON_PLACEHOLDER_B64 = (
+    "PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4K"
+    "ICA8cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxMiIgZmlsbD0iIzJBMkEzNSIvPgogIDxwYXRoIGQ9Ik0zMiAxNkMyNC4yNjggMTYgMTggMjIuMjY4IDE4IDMwQzE4IDMxLjY1NyAxOC4zMjEgMzMuMjI5IDE4LjkwOSAzNC42NjdMMjIuOTg0IDM0LjY2N0MyMy43MyAzNC42NjcgMjQuMzMzIDM1LjI3IDI0LjMzMyAzNi4wMTZWNDAuMDkxQzI0LjMzMyA0MC44MzggMjMuNzMgNDEuNDQxIDIyLjk4NCA0MS40NDFIMTguOTA5QzIwLjU3MSA0NS42ODcgMjQuMzMzIDQ5LjIyNCAyOC45NTkgNTAuNDg2VjQ2LjQxMUMyOC45NTkgNDUuNjY1IDI5LjU2MiA0NS4wNjIgMzAuMzA4IDQ1LjA2MkgzNC4zODNDMzUuMTMgNDUuMDYyIDM1LjczMyA0NC40NTkgMzUuNzMzIDQzLjcxM1YzOS42MzhDMzUuNzMzIDM4Ljg5MSAzNi4zMzYgMzguMjg4IDM3LjA4MyAzOC4yODhINDEuMTU3QzQxLjkwNCAzOC4yODggNDIuNTA3IDM3LjY4NSA0Mi41MDcgMzYuOTM4VjMyLjg2NEM0Mi41MDcgMzIuMTE3IDQzLjExIDMxLjUxNCA0My44NTcgMzEuNTE0SDQ3LjkzMkM0Ny45NzggMzEuMDE1IDQ4IDMwLjUxIDQ4IDMwQzQ4IDIyLjI2OCA0MS43MzIgMTYgMzIgMTZaIiBmaWxsPSIjNEE5MEU2Ii8+CiAgPGNpcmNsZSBjeD0iMjYiIGN5PSIyNiIgcj0iMyIgZmlsbD0iI0ZGRkZGRiIvPgo8L3N2Zz4="
+)
+
+
+def _extension_icon_placeholder_response() -> Response:
+    """Return placeholder extension icon when local file is missing (e.g. ephemeral storage)."""
+    svg_bytes = base64.b64decode(_EXTENSION_ICON_PLACEHOLDER_B64)
+    return Response(
+        content=svg_bytes,
+        media_type="image/svg+xml",
+        headers={
+            "Cache-Control": "public, max-age=3600",
+            "Access-Control-Allow-Origin": "*",
+        },
+    )
 
 
 def _storage_relative_extracted_path(extension_dir: Optional[str]) -> Optional[str]:
@@ -3235,8 +3255,9 @@ async def get_extension_icon(extension_id: str):
                     break
     
     if not extracted_path:
-        # Return 404 but don't log as error - this is expected during early scan stages
-        raise HTTPException(status_code=404, detail="Extension icon not available yet")
+        # Return placeholder - expected during early scan stages or when storage is ephemeral (Railway)
+        logger.debug(f"[ICON] No extracted_path for {extension_id}, returning placeholder")
+        return _extension_icon_placeholder_response()
     
     # Convert to absolute path if it's relative
     # extracted_path is relative to extension_storage_path, not RESULTS_DIR
@@ -3265,9 +3286,11 @@ async def get_extension_icon(extension_id: str):
                     logger.debug(f"Found extracted extension at: {extracted_path}")
                     break
             else:
-                raise HTTPException(status_code=404, detail="Extracted files not found")
+                logger.debug(f"[ICON] Extracted path not found for {extension_id}, returning placeholder")
+                return _extension_icon_placeholder_response()
         else:
-            raise HTTPException(status_code=404, detail="Extracted files not found")
+            logger.debug(f"[ICON] Storage path missing for {extension_id}, returning placeholder")
+            return _extension_icon_placeholder_response()
     
     logger.debug(f"[ICON] extracted_path={extracted_path}, icon_path={icon_path}")
     
@@ -3387,8 +3410,9 @@ async def get_extension_icon(extension_id: str):
         except Exception as e:
             logger.warning(f"Failed to read manifest for icons: {e}")
     
-    logger.warning(f"No icon found for extension {extension_id} at path: {extracted_path}")
-    raise HTTPException(status_code=404, detail="No icon found for this extension")
+    # No icon file found (path exists but no icon, or path from DB is gone - ephemeral storage)
+    logger.debug(f"[ICON] No icon file for {extension_id}, returning placeholder")
+    return _extension_icon_placeholder_response()
 
 
 # Mount static files for React frontend assets (if static directory exists)

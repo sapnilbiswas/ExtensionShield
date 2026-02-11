@@ -125,9 +125,12 @@ export const ScanProvider = ({ children }) => {
       return;
     }
 
+    // Clear input state so /scan page starts clean after scan completes
+    setUrl("");
     setIsScanning(true);
     setError(null);
     setScanResults(null);
+    setCurrentExtensionId(null);
     setScanStage("extracting");
 
     try {
@@ -229,9 +232,11 @@ export const ScanProvider = ({ children }) => {
 
   // Handle file upload
   const handleFileUpload = useCallback(async (file) => {
+    setUrl("");
     setIsScanning(true);
     setError(null);
     setScanResults(null);
+    setCurrentExtensionId(null);
     setScanStage("extracting");
 
     try {
@@ -315,8 +320,14 @@ export const ScanProvider = ({ children }) => {
   }, [navigate]);
 
   // Load results by extension ID (single API: realScanService.getRealScanResults)
+  // Always clears previous results first so stale data never leaks between extensions.
   const loadResultsById = useCallback(async (extId) => {
     try {
+      // Clear previous extension's data before fetching new one
+      setScanResults(null);
+      setCurrentExtensionId(extId);
+      setError("");
+
       const data = await realScanService.getRealScanResults(extId);
       if (!data) {
         setError("Scan results not found. The extension may not have been scanned yet.");
@@ -324,7 +335,6 @@ export const ScanProvider = ({ children }) => {
       }
       setScanResults(data);
       setCurrentExtensionId(extId);
-      setError("");
       return data;
     } catch (err) {
       setError("Failed to load scan results.");

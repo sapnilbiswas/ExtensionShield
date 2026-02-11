@@ -89,7 +89,7 @@ const ReportsPage = () => {
             </h1>
             <p className="reports-subtitle">Extension security verdicts with evidence citations</p>
           </div>
-          <Button onClick={() => navigate("/scanner")} className="scan-btn">
+          <Button onClick={() => navigate("/scan")} className="scan-btn">
             + New Scan
           </Button>
         </header>
@@ -137,7 +137,7 @@ const ReportsPage = () => {
             <div className="empty-icon">📋</div>
             <h3>No Reports Yet</h3>
             <p>Scan an extension to generate a security report</p>
-            <Button onClick={() => navigate("/scanner")}>Start Scanning</Button>
+            <Button onClick={() => navigate("/scan")}>Start Scanning</Button>
           </div>
         ) : (
           <div className="reports-list">

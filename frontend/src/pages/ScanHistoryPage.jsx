@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import databaseService from "../services/databaseService";
-import EnhancedMetricCard from "../components/EnhancedMetricCard";
 import {
   getRiskColorClass,
   getSignalColorClass,
@@ -728,7 +727,7 @@ const ScanHistoryPage = () => {
                   : "Start by scanning your first Chrome extension."}
             </p>
             {!searchTerm && !isPublicView && (
-              <button className="empty-action-btn" onClick={() => navigate("/scanner")}>
+              <button className="empty-action-btn" onClick={() => navigate("/scan")}>
                 <span>⚡</span>
                 Start Your First Scan
               </button>

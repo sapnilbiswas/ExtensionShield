@@ -109,72 +109,18 @@ const ScanResultsPageV2 = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scanId, loadResultsById]);
 
-  // NOTE: Redirect to /extension/:id/version/:hash disabled until backend implements GET /api/extension/:id/version/:hash
-  // When that API exists, uncomment to redirect for canonical URLs
-  // useEffect(() => {
-  //   if (scanResults?.extension_id && scanResults?.build_hash) {
-  //     const canonicalUrl = `/extension/${scanResults.extension_id}/version/${scanResults.build_hash}`;
-  //     if (!window.location.pathname.includes('/extension/')) {
-  //       navigate(canonicalUrl, { replace: true });
-  //     }
-  //   }
-  // }, [scanResults, navigate]);
-
-  // Normalize scan results when they change (runs synchronously; viewModel set in same effect)
+  // Normalize scan results when they change
   useEffect(() => {
     if (scanResults) {
       setRawData(scanResults);
-
-      // ── DEBUG (dev only): raw payload inspection ── (commented for prod: no console)
-      // if (process.env.NODE_ENV === "development") {
-      //   console.group("[DEBUG ScanResultsPageV2] RAW payload inspection");
-      //   console.log("raw keys:", Object.keys(scanResults || {}));
-      //   console.log("raw.report_view_model keys:", Object.keys(scanResults?.report_view_model || {}));
-      //   console.log("typeof raw.report_view_model.consumer_insights:", typeof scanResults?.report_view_model?.consumer_insights);
-      //   console.log("typeof raw.consumer_insights:", typeof scanResults?.consumer_insights);
-      //   console.log("raw.report_view_model.consumer_insights:", scanResults?.report_view_model?.consumer_insights);
-      //   console.log("raw.report_view_model.consumerInsights (camelCase?):", scanResults?.report_view_model?.consumerInsights);
-      //   console.log("raw.scoring_v2 exists?", typeof scanResults?.scoring_v2, scanResults?.scoring_v2 ? Object.keys(scanResults.scoring_v2) : "N/A");
-      //   console.groupEnd();
-      // }
-
-      // Use safe normalizer - never throws (synchronous)
       const vm = normalizeScanResultSafe(scanResults);
       setViewModel(vm);
-
-      // ── DEBUG (dev only): post-normalization inspection ── (commented for prod: no console)
-      // if (process.env.NODE_ENV === "development") {
-      //   console.group("[DEBUG ScanResultsPageV2] POST-NORMALIZATION inspection");
-      //   console.log("viewModel keys:", Object.keys(vm || {}));
-      //   console.log("typeof viewModel.consumerInsights:", typeof vm?.consumerInsights);
-      //   console.log("viewModel.consumerInsights:", vm?.consumerInsights);
-      //   console.log("viewModel.reportViewModel?.consumer_insights:", vm?.reportViewModel?.consumer_insights);
-      //   console.log("!!viewModel.consumerInsights:", !!vm?.consumerInsights);
-      //   console.log("!!raw.report_view_model.consumer_insights:", !!scanResults?.report_view_model?.consumer_insights);
-      //   const ci = vm?.consumerInsights;
-      //   if (ci) {
-      //     console.log("consumerInsights.safety_label.length:", Array.isArray(ci.safety_label) ? ci.safety_label.length : "not array");
-      //     console.log("consumerInsights.scenarios.length:", Array.isArray(ci.scenarios) ? ci.scenarios.length : "not array");
-      //     console.log("consumerInsights.top_drivers.length:", Array.isArray(ci.top_drivers) ? ci.top_drivers.length : "not array");
-      //   } else {
-      //     console.log("consumerInsights is undefined/null");
-      //   }
-      //   console.groupEnd();
-      // }
       
       if (!vm) {
         setNormalizationError("Failed to normalize scan result data");
-        // console.error("[ScanResultsPageV2] normalizeScanResultSafe returned null"); // prod: no console
       } else {
         setNormalizationError(null);
-        
-        // Validate evidence integrity
-        const validation = validateEvidenceIntegrity(vm);
-        if (!validation.valid) {
-          validation.warnings.forEach(warning => {
-            // console.warn(`[ScanResultsPageV2] Evidence warning: ${warning}`); // prod: no console
-          });
-        }
+        validateEvidenceIntegrity(vm);
       }
     }
   }, [scanResults]);
@@ -213,20 +159,21 @@ const ScanResultsPageV2 = () => {
     setShowHeroIcon(true);
   }, [extensionIdForIcon]);
 
-  // Loading state
+  // Loading state - smooth shield animation
   if (isLoading || isLoadingRef.current) {
     return (
       <div className="results-v2">
         <div className="results-v2-loading">
-          <div className="loading-pulse" />
-          <h2>Loading Results</h2>
-          <p>Fetching scan data...</p>
-          <code>{scanId}</code>
-          {error && (
-            <div className="loading-error" style={{ marginTop: '1rem', color: '#ef4444' }}>
-              {error}
-            </div>
-          )}
+          <div className="loading-shield">
+            <span className="loading-shield-icon">🛡️</span>
+            <div className="loading-shield-ring" />
+            <div className="loading-shield-ring-outer" />
+          </div>
+          <h2>Analyzing Extension</h2>
+          <p>Loading security report...</p>
+          <div className="loading-progress-bar">
+            <div className="loading-progress-fill" />
+          </div>
         </div>
       </div>
     );
@@ -331,27 +278,21 @@ const ScanResultsPageV2 = () => {
     });
   };
 
-  // ── TEMP DEBUG (3): booleans for UI banner ──
-  // Commented out debug panel - uncomment to re-enable
-  // For API reference, see: docs/SCORING_ENGINE_DOCUMENTATION.md (API Response Structure section)
-  // API endpoint: GET /api/scan/results/{extension_id}
-  // const _dbgHasRawCI = !!rawData?.report_view_model?.consumer_insights;
-  // const _dbgHasNormCI = !!viewModel?.consumerInsights;
-  // const _dbgHasScanId = !!scanId;
-  // const _dbgHasReportViewModel = !!rawData?.report_view_model;
-  // const _dbgHasScoringV2 = !!rawData?.scoring_v2 || !!rawData?.governance_bundle?.scoring_v2;
-  // const _dbgLastFetchStatus = scanResults ? "success" : (error ? "error" : "pending");
-  // const _dbgErrorMessage = error || null;
-
-  // Brief transition: scanResults loaded but viewModel not yet set (effect runs after render)
-  // Show loading state to avoid flash of "Unable to Display" - normalization is synchronous, next render will have viewModel
+  // Brief transition: scanResults loaded but viewModel not yet set
   if (!viewModel && scanResults && !normalizationError) {
     return (
       <div className="results-v2">
         <div className="results-v2-loading">
-          <div className="loading-pulse" />
-          <h2>Formatting Results</h2>
-          <p>Preparing your report...</p>
+          <div className="loading-shield">
+            <span className="loading-shield-icon">🛡️</span>
+            <div className="loading-shield-ring" />
+            <div className="loading-shield-ring-outer" />
+          </div>
+          <h2>Preparing Report</h2>
+          <p>Formatting security analysis...</p>
+          <div className="loading-progress-bar">
+            <div className="loading-progress-fill" />
+          </div>
         </div>
       </div>
     );
@@ -381,34 +322,6 @@ const ScanResultsPageV2 = () => {
 
   return (
     <div className="results-v2">
-      {/* ── TEMP DEBUG BANNER ── */}
-      {/* Commented out debug panel - uncomment to re-enable
-          For API reference, see: docs/SCORING_ENGINE_DOCUMENTATION.md (API Response Structure section)
-          API endpoint: GET /api/scan/results/{extension_id}
-      <div style={{
-        position: 'sticky', top: 0, zIndex: 9999,
-        background: '#1e293b', border: '2px solid #f59e0b',
-        borderRadius: 8, padding: '12px 16px', marginBottom: 12,
-        fontFamily: 'monospace', fontSize: 12, color: '#fbbf24',
-        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        gap: 12, lineHeight: 1.6
-      }}>
-        <div><b>lastFetchStatus:</b> {_dbgLastFetchStatus}</div>
-        <div><b>hasScanId:</b> {String(_dbgHasScanId)}</div>
-        <div><b>hasReportViewModel:</b> {String(_dbgHasReportViewModel)}</div>
-        <div><b>hasScoringV2:</b> {String(_dbgHasScoringV2)}</div>
-        <div><b>hasRawConsumerInsights:</b> {String(_dbgHasRawCI)}</div>
-        <div><b>hasNormalizedConsumerInsights:</b> {String(_dbgHasNormCI)}</div>
-        {_dbgErrorMessage && <div style={{ gridColumn: '1 / -1', color: '#ef4444' }}><b>errorMessage:</b> {_dbgErrorMessage}</div>}
-        {!rawData && <div style={{ gridColumn: '1 / -1', color: '#ef4444' }}><b>WARNING:</b> rawData is null - top-level keys unavailable</div>}
-        {rawData && (
-          <div style={{ gridColumn: '1 / -1', fontSize: 11, marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(251, 191, 36, 0.2)' }}>
-            <b>Top-level keys:</b> {Object.keys(rawData).slice(0, 15).join(', ')}{Object.keys(rawData).length > 15 ? '...' : ''}
-          </div>
-        )}
-      </div>
-      */}
-
       {/* Navigation Bar */}
       <nav className="results-v2-nav">
         <Link to="/scan" className="nav-back">

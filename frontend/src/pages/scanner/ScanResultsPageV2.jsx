@@ -482,7 +482,7 @@ const ScanResultsPageV2 = () => {
         onGetFileContent={getFileContent}
       />
 
-      {/* Layer Modals */}
+      {/* Layer Modals - pass layerDetails from report_view_model for LLM-generated insights */}
       {layerModal.layer === 'security' && (
         <LayerModal
           open={layerModal.open}
@@ -500,6 +500,7 @@ const ScanResultsPageV2 = () => {
           keyFindings={dedupeFindings(allSecurityFindings)}
           gateResults={scanResults?.scoring_v2?.gate_results?.filter(g => g.triggered && gateIdToLayer(g.gate_id) === 'security') || []}
           layerReasons={scores?.reasons?.filter(r => r.toLowerCase().includes('security') || r.toLowerCase().includes('sast') || r.toLowerCase().includes('malware')) || []}
+          layerDetails={scanResults?.report_view_model?.layer_details}
           onViewEvidence={openEvidenceDrawer}
         />
       )}
@@ -516,6 +517,7 @@ const ScanResultsPageV2 = () => {
           keyFindings={dedupeFindings(allPrivacyFindings)}
           gateResults={scanResults?.scoring_v2?.gate_results?.filter(g => g.triggered && gateIdToLayer(g.gate_id) === 'privacy') || []}
           layerReasons={scores?.reasons?.filter(r => r.toLowerCase().includes('privacy') || r.toLowerCase().includes('exfil') || r.toLowerCase().includes('tracking')) || []}
+          layerDetails={scanResults?.report_view_model?.layer_details}
           onViewEvidence={openEvidenceDrawer}
         />
       )}
@@ -531,6 +533,7 @@ const ScanResultsPageV2 = () => {
           keyFindings={dedupeFindings(allGovernanceFindings)}
           gateResults={scanResults?.scoring_v2?.gate_results?.filter(g => g.triggered && gateIdToLayer(g.gate_id) === 'governance') || []}
           layerReasons={scores?.reasons?.filter(r => r.toLowerCase().includes('governance') || r.toLowerCase().includes('policy') || r.toLowerCase().includes('tos') || r.toLowerCase().includes('disclosure')) || []}
+          layerDetails={scanResults?.report_view_model?.layer_details}
           onViewEvidence={openEvidenceDrawer}
         />
       )}

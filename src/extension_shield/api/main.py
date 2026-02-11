@@ -293,6 +293,19 @@ def _ensure_consumer_insights(payload: Dict[str, Any]) -> Dict[str, Any]:
     except Exception as exc:
         logger.warning("Failed to compute consumer_insights: %s", exc)
         logger.info("consumer_insights_attached=false")
+
+    # Also ensure consumer_summary exists (verdict/reasons/access/action format)
+    if rvm.get("consumer_summary") is None:
+        try:
+            from extension_shield.core.report_view_model import build_consumer_summary
+            rvm["consumer_summary"] = build_consumer_summary(
+                report_view_model=rvm,
+                scoring_v2=scoring_v2,
+            )
+            logger.info("consumer_summary_attached=true (computed)")
+        except Exception as exc:
+            logger.warning("Failed to compute consumer_summary: %s", exc)
+
     return payload
 
 

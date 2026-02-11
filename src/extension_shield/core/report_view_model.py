@@ -158,6 +158,117 @@ def _fallback_executive_summary(score: int, score_label: str, host_scope_label: 
     }
 
 
+def build_consumer_summary(
+    report_view_model: Dict[str, Any],
+    scoring_v2: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """
+    Build a clean, consumer-friendly summary from the report_view_model.
+
+    Produces the format:
+      verdict:     max 12 words
+      reasons:     2-3 bullets (plain English)
+      access:      1 bullet "What it can access"
+      action:      1 bullet "What to do"
+
+    Total length target: <= 80 words.
+
+    Rules:
+    - Use ONLY facts from the provided data. Do not assume anything else.
+    - Do not include internal IDs (e.g., CRITICAL_SAST) or file paths.
+    - Keep it non-alarmist but clear. No speculation.
+    """
+    scorecard = report_view_model.get("scorecard", {})
+    highlights = report_view_model.get("highlights", {})
+    evidence = report_view_model.get("evidence", {})
+    consumer_insights = report_view_model.get("consumer_insights", {})
+    layer_details = report_view_model.get("layer_details", {})
+
+    score = scorecard.get("score", 0)
+    score_label = scorecard.get("score_label", "UNKNOWN")
+    one_liner = scorecard.get("one_liner", "")
+
+    # --- Verdict (max 12 words) ---
+    if score_label == "HIGH RISK":
+        verdict = one_liner if one_liner and len(one_liner.split()) <= 12 else "High risk — avoid unless necessary."
+    elif score_label == "MEDIUM RISK":
+        verdict = one_liner if one_liner and len(one_liner.split()) <= 12 else "Some caution needed before using this extension."
+    elif score_label == "LOW RISK":
+        verdict = one_liner if one_liner and len(one_liner.split()) <= 12 else "Low risk — appears safe for general use."
+    else:
+        verdict = one_liner or "Risk level could not be determined."
+
+    # Truncate to 12 words max
+    words = verdict.split()
+    if len(words) > 12:
+        verdict = " ".join(words[:12]) + "."
+
+    # --- Reasons (2-3 bullets, plain English) ---
+    reasons: List[str] = []
+    why_this_score = highlights.get("why_this_score", [])
+    if isinstance(why_this_score, list) and why_this_score:
+        reasons = [str(r) for r in why_this_score if r and str(r).strip()][:3]
+
+    # Fallback: use layer_details key_points if no highlights
+    if not reasons:
+        for layer_name in ("security", "privacy", "governance"):
+            ld = layer_details.get(layer_name, {})
+            if isinstance(ld, dict):
+                kp = ld.get("key_points", [])
+                if isinstance(kp, list):
+                    reasons.extend([str(p) for p in kp if p and str(p).strip()])
+        reasons = reasons[:3]
+
+    # --- What it can access (1 bullet) ---
+    access_bullet = ""
+    host_access = evidence.get("host_access_summary", {})
+    host_scope = host_access.get("host_scope_label", "UNKNOWN")
+    cap_flags = evidence.get("capability_flags", {})
+
+    access_parts: List[str] = []
+    if host_scope == "ALL_WEBSITES":
+        access_parts.append("all websites")
+    elif host_scope == "MULTI_DOMAIN":
+        domains = host_access.get("domains", [])
+        if domains:
+            access_parts.append(f"multiple sites ({', '.join(domains[:3])})")
+        else:
+            access_parts.append("multiple websites")
+    elif host_scope == "SINGLE_DOMAIN":
+        domains = host_access.get("domains", [])
+        access_parts.append(domains[0] if domains else "one website")
+
+    if cap_flags.get("reads_cookies"):
+        access_parts.append("cookies")
+    if cap_flags.get("reads_history") or cap_flags.get("reads_tabs"):
+        access_parts.append("browsing history")
+    if cap_flags.get("modifies_pages"):
+        access_parts.append("page content")
+
+    if access_parts:
+        access_bullet = f"Can access: {', '.join(access_parts)}."
+    else:
+        access_bullet = "No special data access detected."
+
+    # --- What to do (1 bullet) ---
+    what_to_watch = highlights.get("what_to_watch", [])
+    if isinstance(what_to_watch, list) and what_to_watch:
+        action_bullet = str(what_to_watch[0])
+    elif score_label == "HIGH RISK":
+        action_bullet = "Avoid installing unless absolutely necessary."
+    elif score_label == "MEDIUM RISK":
+        action_bullet = "Review permissions before installing; disable on sensitive sites."
+    else:
+        action_bullet = "Keep the extension updated and review after major updates."
+
+    return {
+        "verdict": verdict,
+        "reasons": reasons,
+        "access": access_bullet,
+        "action": action_bullet,
+    }
+
+
 def _bucket(risk_level: str, bullets: List[str], mitigations: List[str]) -> Dict[str, Any]:
     return {
         "risk_level": (risk_level or "UNKNOWN"),
@@ -1180,6 +1291,21 @@ def build_report_view_model(
         "consumer_insights": consumer_insights,
         "layer_details": layer_details,
     }
+
+    # -------------------------------------------------------------------------
+    # Consumer Summary (clean, ranked facts — not taxonomy)
+    # Verdict + 2-3 reasons + access + action, <= 80 words total
+    # -------------------------------------------------------------------------
+    scoring_v2_for_summary: Optional[Dict[str, Any]] = None
+    try:
+        scoring_v2_for_summary = scoring_result.model_dump_for_api() if scoring_result else None
+    except Exception:
+        scoring_v2_for_summary = None
+
+    report_view_model["consumer_summary"] = build_consumer_summary(
+        report_view_model=report_view_model,
+        scoring_v2=scoring_v2_for_summary,
+    )
 
     return report_view_model
 

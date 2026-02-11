@@ -1,32 +1,156 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '../ui/dialog';
-import FactorBars from './FactorBars';
-import PermissionsPanel from './PermissionsPanel';
 import './LayerModal.scss';
 
-/**
- * LayerModal - Modal showing detailed layer information
- * 
- * Props:
- * - open: boolean
- * - onClose: () => void
- * - layer: 'security' | 'privacy' | 'governance'
- * - score: number | null
- * - band: 'GOOD' | 'WARN' | 'BAD' | 'NA'
- * - factors: FactorVM[]
- * - permissions: PermissionsVM (for privacy modal)
- * - powerfulPermissions: string[] (for security modal - subset)
- * - keyFindings: KeyFindingVM[] (filtered by layer)
- * - gateResults: any[] (filtered by layer)
- * - layerReasons: string[] (filtered by layer)
- * - layerDetails: object | null (human-friendly explanations)
- * - onViewEvidence: (evidenceIds: string[]) => void
- */
+// ---------------------------------------------------------------------------
+// Human-readable translations for internal factor names
+// ---------------------------------------------------------------------------
+const FACTOR_HUMAN = {
+  // Security layer
+  SAST:                 { label: 'Code Safety',           icon: '🔍', category: 'code',   desc: 'Static analysis of extension source code' },
+  VirusTotal:           { label: 'Malware Scan',          icon: '🦠', category: 'threat', desc: 'Malware detection across 70+ antivirus engines' },
+  Obfuscation:          { label: 'Hidden Code',           icon: '🫣', category: 'code',   desc: 'Code that is intentionally hard to read' },
+  Manifest:             { label: 'Extension Config',      icon: '⚙️', category: 'code',   desc: 'Security posture of the extension manifest' },
+  ChromeStats:          { label: 'Threat Intelligence',   icon: '📡', category: 'threat', desc: 'Behavioral signals from Chrome threat feeds' },
+  Webstore:             { label: 'Store Reputation',      icon: '🏪', category: 'trust',  desc: 'Webstore listing signals and reputation' },
+  Maintenance:          { label: 'Update Freshness',      icon: '📅', category: 'trust',  desc: 'How recently the extension was updated' },
+  // Privacy layer
+  PermissionsBaseline:  { label: 'Permission Risk',       icon: '🔑', category: 'access', desc: 'Individual permission risk assessment' },
+  PermissionCombos:     { label: 'Dangerous Combos',      icon: '⚡', category: 'access', desc: 'Risky combinations of permissions together' },
+  NetworkExfil:         { label: 'Data Sharing',           icon: '📤', category: 'data',   desc: 'Potential for sending your data externally' },
+  CaptureSignals:       { label: 'Screen / Tab Capture',  icon: '📹', category: 'data',   desc: 'Can record your screen, tabs, or desktop' },
+  // Governance layer
+  ToSViolations:        { label: 'Policy Violations',     icon: '📜', category: 'policy', desc: 'Chrome Web Store Terms of Service compliance' },
+  Consistency:          { label: 'Behavior Match',        icon: '🎯', category: 'policy', desc: 'Does what it claims match what it does?' },
+  DisclosureAlignment:  { label: 'Disclosure Accuracy',   icon: '📋', category: 'policy', desc: 'Privacy policy vs actual data practices' },
+};
+
+const CATEGORY_LABELS = {
+  code:   'Code Analysis',
+  threat: 'Threat Detection',
+  trust:  'Trust Signals',
+  access: 'Data Access',
+  data:   'Data Handling',
+  policy: 'Policy Compliance',
+};
+
+const LAYER_CONFIG = {
+  security: {
+    title: 'Security',
+    icon: '🛡️',
+    tagline: 'How safe is the code and configuration?',
+  },
+  privacy: {
+    title: 'Privacy',
+    icon: '🔒',
+    tagline: 'What data can it access and where does it go?',
+  },
+  governance: {
+    title: 'Governance',
+    icon: '📋',
+    tagline: 'Does it follow the rules and do what it claims?',
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+function humanizeFactor(factor) {
+  const info = FACTOR_HUMAN[factor.name] || {
+    label: factor.name,
+    icon: '📊',
+    category: 'other',
+    desc: '',
+  };
+  const severity = factor.severity ?? 0;
+  let level, levelColor;
+  if (severity >= 0.7)      { level = 'High risk';   levelColor = '#EF4444'; }
+  else if (severity >= 0.4) { level = 'Medium risk';  levelColor = '#F59E0B'; }
+  else if (severity >= 0.05){ level = 'Low risk';     levelColor = '#10B981'; }
+  else                      { level = 'Clear';        levelColor = '#10B981'; }
+  return { ...info, level, levelColor, severity, raw: factor };
+}
+
+function groupByCategory(items) {
+  const groups = {};
+  items.forEach(item => {
+    const cat = item.category || 'other';
+    if (!groups[cat]) groups[cat] = [];
+    groups[cat].push(item);
+  });
+  // Sort each group: highest severity first
+  Object.values(groups).forEach(g => g.sort((a, b) => b.severity - a.severity));
+  // Return as array of [category, items[]], sorted by max severity descending
+  return Object.entries(groups)
+    .sort(([, a], [, b]) => Math.max(...b.map(x => x.severity)) - Math.max(...a.map(x => x.severity)));
+}
+
+function bandColor(band) {
+  switch (band) {
+    case 'GOOD': return '#10B981';
+    case 'WARN': return '#F59E0B';
+    case 'BAD':  return '#EF4444';
+    default:     return '#6B7280';
+  }
+}
+
+function bandLabel(band) {
+  switch (band) {
+    case 'GOOD': return 'Good';
+    case 'WARN': return 'Caution';
+    case 'BAD':  return 'Bad';
+    default:     return '';
+  }
+}
+
+// Human-friendly permission name
+function humanizePermission(perm) {
+  const MAP = {
+    'tabs':             'See your open tabs',
+    'cookies':          'Read your cookies',
+    'history':          'Read your browsing history',
+    'webNavigation':    'See every page you visit',
+    'webRequest':       'Intercept network requests',
+    'webRequestBlocking': 'Block / modify network requests',
+    'clipboardRead':    'Read your clipboard',
+    'clipboardWrite':   'Write to your clipboard',
+    'management':       'Manage other extensions',
+    'nativeMessaging':  'Talk to apps on your computer',
+    'debugger':         'Full debugger access',
+    'desktopCapture':   'Record your desktop',
+    'tabCapture':       'Record a browser tab',
+    'proxy':            'Route your traffic through a proxy',
+    '<all_urls>':       'Access all websites',
+    'geolocation':      'Read your location',
+    'notifications':    'Send you notifications',
+    'storage':          'Store data locally',
+    'activeTab':        'Access the page you are viewing',
+    'alarms':           'Set background timers',
+    'contextMenus':     'Add right-click menu items',
+    'identity':         'Access your Google account info',
+    'scripting':        'Run scripts on pages you visit',
+  };
+  // URL patterns
+  if (perm.includes('://*/*') || perm === '<all_urls>') {
+    return 'Access all websites';
+  }
+  if (perm.match(/^https?:\/\//)) {
+    try {
+      const hostname = new URL(perm.replace(/\*/g, 'x')).hostname.replace(/^x\./, '*.');
+      return `Access ${hostname}`;
+    } catch { /* fall through */ }
+  }
+  return MAP[perm] || perm;
+}
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
 const LayerModal = ({
   open,
   onClose,
@@ -42,284 +166,112 @@ const LayerModal = ({
   layerDetails = null,
   onViewEvidence = null,
 }) => {
-  const [expandedSection, setExpandedSection] = useState(null); // Start with all sections collapsed
+  const config = LAYER_CONFIG[layer] || LAYER_CONFIG.security;
+  const displayScore = score === null ? '--' : Math.round(score);
+  const bc = bandColor(band);
+  const bl = bandLabel(band);
 
-  const getLayerInfo = () => {
-    const layers = {
-      security: {
-        title: 'Security',
-        icon: '🛡️',
-        description: 'Technical security vulnerabilities and threats detected in the extension code and configuration.',
-        color: '#3B82F6',
-      },
-      privacy: {
-        title: 'Privacy',
-        icon: '🔒',
-        description: 'Data collection, permissions, and potential data exfiltration risks.',
-        color: '#8B5CF6',
-      },
-      governance: {
-        title: 'Governance',
-        icon: '📋',
-        description: 'Policy compliance, behavioral consistency, and disclosure alignment.',
-        color: '#10B981',
-      },
-    };
-    return layers[layer] || layers.security;
-  };
+  // LLM plain-language content
+  const ld = layerDetails?.[layer] || {};
+  const oneLiner = ld.one_liner || '';
+  const keyPoints = (ld.key_points || []).filter(p => p?.trim());
+  const whatToWatch = (ld.what_to_watch || []).filter(p => p?.trim());
 
-  const layerInfo = getLayerInfo();
-  const displayScore = score === null ? 'Coming soon' : Math.round(score);
-  const displayBand = band === 'NA' ? '' : band;
+  // Categorised & humanised factors
+  const humanised = factors.map(humanizeFactor);
+  const grouped = groupByCategory(humanised);
 
-  const getBandColor = () => {
-    if (score === null) return '#6B7280';
-    switch (band) {
-      case 'GOOD': return '#10B981';
-      case 'WARN': return '#F59E0B';
-      case 'BAD': return '#EF4444';
-      default: return '#6B7280';
-    }
-  };
-
-  const toggleSection = (section) => {
-    setExpandedSection(expandedSection === section ? null : section);
-  };
+  // Build a flat permissions list for display
+  const permsList = buildPermsList(layer, permissions, powerfulPermissions);
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="layer-modal-content">
+      <DialogContent className="lm-content">
         <DialogHeader>
-          <DialogTitle className="layer-modal-title">
-            <span className="title-icon">{layerInfo.icon}</span>
-            <span className="title-text">{layerInfo.title} Details</span>
-            <div className="title-status">
-              <span className="title-score" style={{ color: getBandColor() }}>
+          <DialogTitle className="lm-header">
+            <span className="lm-icon">{config.icon}</span>
+            <span className="lm-title">{config.title}</span>
+            <div className="lm-score-area">
+              <span className="lm-score" style={{ color: bc }}>
                 {score !== null ? `${displayScore}/100` : displayScore}
               </span>
-              {displayBand && (
-                <span className="title-band" style={{ color: getBandColor() }}>
-                  {displayBand}
-                </span>
-              )}
+              {bl && <span className="lm-band" style={{ color: bc }}>{bl}</span>}
             </div>
           </DialogTitle>
         </DialogHeader>
 
-        <div className="layer-modal-body">
-          {/* Layer Description */}
-          <p className="layer-description">{layerInfo.description}</p>
+        <div className="lm-body">
+          {/* One-liner insight */}
+          {oneLiner ? (
+            <p className="lm-insight">{oneLiner}</p>
+          ) : (
+            <p className="lm-tagline">{config.tagline}</p>
+          )}
 
-          {/* Human-Friendly Layer Details */}
-          {layerDetails && layerDetails[layer] && (
-            <div className="human-friendly-section">
-              <div className="human-summary">
-                <span className="summary-text">{layerDetails[layer].one_liner}</span>
-              </div>
-              
-              {/* Key Points */}
-              {layerDetails[layer].key_points && layerDetails[layer].key_points.filter(point => point && point.trim()).length > 0 && (
-                <div className="key-points">
-                  <h4 className="key-points-title">Key Findings</h4>
-                  <ul className="key-points-list">
-                    {layerDetails[layer].key_points
-                      .filter(point => point && point.trim())
-                      .map((point, idx) => (
-                        <li key={idx} className="key-point-item">
-                          <span className="bullet">•</span>
-                          <span className="point-text">{point}</span>
-                        </li>
-                      ))
-                    }
-                  </ul>
-                </div>
-              )}
-
-              {/* What to Watch */}
-              {layerDetails[layer].what_to_watch && layerDetails[layer].what_to_watch.filter(item => item && item.trim()).length > 0 && (
-                <div className="what-to-watch">
-                  <h4 className="what-to-watch-title">What to Watch</h4>
-                  <ul className="what-to-watch-list">
-                    {layerDetails[layer].what_to_watch
-                      .filter(item => item && item.trim())
-                      .map((item, idx) => (
-                        <li key={idx} className="watch-item">
-                          <span className="bullet">⚠</span>
-                          <span className="watch-text">{item}</span>
-                        </li>
-                      ))
-                    }
-                  </ul>
-                </div>
-              )}
+          {/* Key Findings (plain English) */}
+          {keyPoints.length > 0 && (
+            <div className="lm-section">
+              <h3 className="lm-section-title">Key Findings</h3>
+              <ul className="lm-bullets">
+                {keyPoints.map((pt, i) => (
+                  <li key={i}><span className="lm-bullet-num">{i + 1}</span>{pt}</li>
+                ))}
+              </ul>
             </div>
           )}
 
-          {/* Key Findings / Gates / Reasons */}
-          {(keyFindings.length > 0 || gateResults.length > 0 || layerReasons.length > 0) && (
-            <div className="modal-section">
-              <div 
-                className="section-header"
-                onClick={() => toggleSection('findings')}
-              >
-                <h3 className="section-title">
-                  <span className="section-icon">🔍</span>
-                  Analysis Notes ({keyFindings.length + gateResults.length + layerReasons.length})
-                </h3>
-                <span className={`expand-icon ${expandedSection === 'findings' ? 'expanded' : ''}`}>
-                  ›
-                </span>
-              </div>
-              {expandedSection === 'findings' && (
-                <div className="section-content">
-                  <ul className="findings-list">
-                    {/* Hard Gates First */}
-                    {gateResults.map((gate, idx) => {
-                      const severity = gate.decision === 'BLOCK' ? 'high' : 'medium';
-                      return (
-                        <li key={`gate-${idx}`} className="finding-item">
-                          <span className={`finding-severity severity-${severity}`}>
-                            {gate.decision === 'BLOCK' ? 'CRITICAL' : 'WARN'}
+          {/* Risk Breakdown - grouped by category */}
+          {grouped.length > 0 && (
+            <div className="lm-section">
+              <h3 className="lm-section-title">Risk Breakdown</h3>
+              <div className="lm-categories">
+                {grouped.map(([cat, items]) => (
+                  <div key={cat} className="lm-cat">
+                    <span className="lm-cat-label">{CATEGORY_LABELS[cat] || cat}</span>
+                    <div className="lm-cat-items">
+                      {items.map((item, idx) => (
+                        <div key={idx} className="lm-factor">
+                          <span className="lm-factor-icon">{item.icon}</span>
+                          <div className="lm-factor-info">
+                            <span className="lm-factor-label">{item.label}</span>
+                            {item.desc && <span className="lm-factor-desc">{item.desc}</span>}
+                          </div>
+                          <span className="lm-factor-level" style={{ color: item.levelColor }}>
+                            {item.level}
                           </span>
-                          <span className="finding-text">{gate.gate_id}: {gate.reasons?.join(', ') || 'Triggered'}</span>
-                        </li>
-                      );
-                    })}
-                    {/* Then Key Findings */}
-                    {keyFindings.map((finding, idx) => (
-                      <li key={`finding-${idx}`} className="finding-item">
-                        <span className={`finding-severity severity-${finding.severity}`}>
-                          {finding.severity.toUpperCase()}
-                        </span>
-                        <span className="finding-text">{finding.title}</span>
-                        {finding.evidenceIds && finding.evidenceIds.length > 0 && onViewEvidence && (
-                          <button
-                            className="view-evidence-btn"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onViewEvidence(finding.evidenceIds);
-                            }}
-                          >
-                            View Evidence
-                          </button>
-                        )}
-                      </li>
-                    ))}
-                    {/* Then Layer Reasons */}
-                    {layerReasons.map((reason, idx) => (
-                      <li key={`reason-${idx}`} className="finding-item">
-                        <span className="finding-severity severity-low">INFO</span>
-                        <span className="finding-text">{reason}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Factors */}
-          {factors.length > 0 && (
-            <div className="modal-section">
-              <div 
-                className="section-header"
-                onClick={() => toggleSection('factors')}
-              >
-                <h3 className="section-title">
-                  <span className="section-icon">📊</span>
-                  Risk Factors ({factors.length})
-                </h3>
-                <span className={`expand-icon ${expandedSection === 'factors' ? 'expanded' : ''}`}>
-                  ›
-                </span>
-              </div>
-              {expandedSection === 'factors' && (
-                <div className="section-content">
-                  <FactorBars
-                    title=""
-                    factors={factors}
-                    onViewEvidence={onViewEvidence}
-                  />
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Security Modal: Powerful Permissions */}
-          {layer === 'security' && powerfulPermissions.length > 0 && (
-            <div className="modal-section">
-              <div 
-                className="section-header"
-                onClick={() => toggleSection('permissions')}
-              >
-                <h3 className="section-title">
-                  <span className="section-icon">🔑</span>
-                  Powerful Permissions ({powerfulPermissions.length})
-                </h3>
-                <span className={`expand-icon ${expandedSection === 'permissions' ? 'expanded' : ''}`}>
-                  ›
-                </span>
-              </div>
-              {expandedSection === 'permissions' && (
-                <div className="section-content">
-                  <div className="permissions-chips">
-                    {powerfulPermissions.map((perm, idx) => (
-                      <span key={idx} className="permission-chip risk-high">
-                        {perm}
-                      </span>
-                    ))}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                ))}
+              </div>
             </div>
           )}
 
-          {/* Privacy Modal: Full Permissions */}
-          {layer === 'privacy' && permissions && (
-            <div className="modal-section">
-              <div 
-                className="section-header"
-                onClick={() => toggleSection('permissions')}
-              >
-                <h3 className="section-title">
-                  <span className="section-icon">🔑</span>
-                  Permissions
-                </h3>
-                <span className={`expand-icon ${expandedSection === 'permissions' ? 'expanded' : ''}`}>
-                  ›
-                </span>
-              </div>
-              {expandedSection === 'permissions' && (
-                <div className="section-content">
-                  <PermissionsPanel permissions={permissions} />
-                </div>
-              )}
+          {/* Permissions - flat list with human labels */}
+          {permsList.length > 0 && (
+            <div className="lm-section">
+              <h3 className="lm-section-title">What It Can Do</h3>
+              <ul className="lm-perms-list">
+                {permsList.map((p, i) => (
+                  <li key={i} className={`lm-perm lm-perm-${p.risk}`}>
+                    <span className="lm-perm-dot" />
+                    <span className="lm-perm-text">{p.label}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 
-          {/* Governance Modal: Policy Details */}
-          {layer === 'governance' && (
-            <div className="modal-section">
-              <div 
-                className="section-header"
-                onClick={() => toggleSection('policy')}
-              >
-                <h3 className="section-title">
-                  <span className="section-icon">📜</span>
-                  Policy & Compliance
-                </h3>
-                <span className={`expand-icon ${expandedSection === 'policy' ? 'expanded' : ''}`}>
-                  ›
-                </span>
-              </div>
-              {expandedSection === 'policy' && (
-                <div className="section-content">
-                  <p className="policy-text">
-                    This section shows policy compliance details, including Terms of Service violations,
-                    purpose mismatches, and disclosure alignment issues.
-                  </p>
-                </div>
-              )}
+          {/* What to Watch */}
+          {whatToWatch.length > 0 && (
+            <div className="lm-section">
+              <h3 className="lm-section-title">What to Watch</h3>
+              <ul className="lm-watch">
+                {whatToWatch.map((w, i) => (
+                  <li key={i}>{w}</li>
+                ))}
+              </ul>
             </div>
           )}
         </div>
@@ -328,5 +280,38 @@ const LayerModal = ({
   );
 };
 
-export default LayerModal;
+// ---------------------------------------------------------------------------
+// Build a flat, deduplicated, sorted permissions list
+// ---------------------------------------------------------------------------
+function buildPermsList(layer, permissions, powerfulPermissions) {
+  const seen = new Set();
+  const list = [];
 
+  const addPerm = (name, risk) => {
+    const label = humanizePermission(name);
+    const key = label.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    list.push({ label, risk });
+  };
+
+  // High-risk first
+  if (layer === 'security' && powerfulPermissions.length > 0) {
+    powerfulPermissions.forEach(p => addPerm(p, 'high'));
+  }
+
+  if (permissions) {
+    (permissions.highRiskPermissions || []).forEach(p => addPerm(p, 'high'));
+    (permissions.broadHostPatterns || []).forEach(p => addPerm(p, 'high'));
+    (permissions.unreasonablePermissions || []).forEach(p => addPerm(p, 'medium'));
+    (permissions.apiPermissions || []).forEach(p => addPerm(p, 'low'));
+    (permissions.hostPermissions || []).forEach(p => addPerm(p, 'low'));
+  }
+
+  // Sort: high -> medium -> low, cap at 12
+  const riskOrder = { high: 0, medium: 1, low: 2 };
+  list.sort((a, b) => (riskOrder[a.risk] ?? 3) - (riskOrder[b.risk] ?? 3));
+  return list.slice(0, 12);
+}
+
+export default LayerModal;

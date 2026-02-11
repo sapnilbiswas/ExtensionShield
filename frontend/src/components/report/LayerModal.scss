@@ -1,408 +1,281 @@
-.layer-modal-content {
+// ===========================================================================
+// LayerModal – clean, flat, no tabs / accordions / side-drawers
+// Insight → Key Findings → Categorised Risk → Permissions → Watch
+// ===========================================================================
+
+.lm-content {
   background: #0f172a;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255,255,255,0.1);
   color: #f8fafc;
-  max-width: 800px;
-  max-height: 90vh;
+  max-width: 620px;
+  max-height: 88vh;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.08) transparent;
 }
 
-.layer-modal-title {
+// --- Header ---
+.lm-header {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
 
-  .title-icon {
-    font-size: 24px;
-  }
-
-  .title-text {
-    font-size: 22px;
+  .lm-icon  { font-size: 22px; }
+  .lm-title {
+    font-size: 20px;
     font-weight: 600;
     color: #f8fafc;
     letter-spacing: -0.02em;
   }
-
-  .title-status {
+  .lm-score-area {
     display: flex;
     align-items: center;
     gap: 8px;
     margin-left: auto;
   }
-
-  .title-score {
-    font-size: 24px;
+  .lm-score {
+    font-size: 22px;
     font-weight: 700;
   }
+  .lm-band {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 4px 9px;
+    border-radius: 5px;
+    background: rgba(255,255,255,0.07);
+    letter-spacing: 0.04em;
+  }
+}
 
-  .title-band {
+// --- Body ---
+.lm-body {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  margin-top: 14px;
+
+  // One-liner
+  .lm-insight {
+    font-size: 16px;
+    font-weight: 500;
+    color: rgba(248,250,252,0.92);
+    line-height: 1.55;
+    margin: 0;
+    padding: 16px 18px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 10px;
+  }
+  .lm-tagline {
+    font-size: 15px;
+    color: rgba(248,250,252,0.55);
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  // --- Section chrome ---
+  .lm-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .lm-section-title {
     font-size: 12px;
     font-weight: 700;
     text-transform: uppercase;
-    padding: 6px 10px;
-    border-radius: 6px;
-    background: rgba(255, 255, 255, 0.08);
-    letter-spacing: 0.05em;
-  }
-}
-
-.layer-modal-body {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  margin-top: 20px;
-
-  .layer-description {
-    font-size: 16px;
-    color: rgba(248, 250, 252, 0.7);
-    line-height: 1.6;
+    letter-spacing: 0.06em;
+    color: rgba(248,250,252,0.5);
     margin: 0;
-    padding: 0 4px;
   }
 
-  .modal-section {
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    overflow: hidden;
-    background: rgba(255, 255, 255, 0.01);
-
-    .section-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px 20px;
-      background: rgba(255, 255, 255, 0.02);
-      cursor: pointer;
-      transition: all 0.2s ease;
-
-      &:hover {
-        background: rgba(255, 255, 255, 0.05);
-      }
-
-      .section-title {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 16px;
-        font-weight: 600;
-        color: rgba(248, 250, 252, 0.95);
-        margin: 0;
-        letter-spacing: -0.01em;
-
-        .section-icon {
-          font-size: 18px;
-        }
-      }
-
-      .expand-icon {
-        font-size: 20px;
-        color: rgba(248, 250, 252, 0.5);
-        transition: all 0.2s ease;
-        transform: rotate(0deg);
-
-        &.expanded {
-          transform: rotate(90deg);
-          color: rgba(248, 250, 252, 0.7);
-        }
-      }
-    }
-
-    .section-content {
-      padding: 20px;
-      background: rgba(255, 255, 255, 0.005);
-
-      @media (max-width: 640px) {
-        padding: 16px;
-      }
-    }
-  }
-
-  // Responsive adjustments for findings list
-  @media (max-width: 640px) {
-    .findings-list {
-      gap: 12px;
-
-      .finding-item {
-        padding: 14px;
-        gap: 10px;
-
-        .finding-text {
-          font-size: 14px;
-        }
-
-        .view-evidence-btn {
-          padding: 8px 14px;
-          font-size: 12px;
-          width: 100%;
-          text-align: center;
-        }
-      }
-    }
-  }
-
-  .findings-list {
+  // --- Key Findings bullets ---
+  .lm-bullets {
     list-style: none;
-    padding: 0;
     margin: 0;
+    padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 6px;
 
-    .finding-item {
+    li {
       display: flex;
-      flex-direction: column;
-      gap: 12px;
-      padding: 18px;
-      background: rgba(255, 255, 255, 0.025);
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      transition: all 0.2s ease;
-
-      &:hover {
-        background: rgba(255, 255, 255, 0.04);
-        border-color: rgba(255, 255, 255, 0.12);
-      }
-
-      // Top row: severity badge and text
-      .finding-severity {
-        display: inline-flex;
-        align-items: center;
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        padding: 6px 10px;
-        border-radius: 6px;
-        line-height: 1;
-        letter-spacing: 0.05em;
-        width: fit-content;
-        margin-bottom: 4px;
-
-        &.severity-high, &.severity-critical {
-          background: rgba(239, 68, 68, 0.15);
-          color: #fca5a5;
-          border: 1px solid rgba(239, 68, 68, 0.3);
-        }
-
-        &.severity-medium {
-          background: rgba(245, 158, 11, 0.15);
-          color: #fcd34d;
-          border: 1px solid rgba(245, 158, 11, 0.3);
-        }
-
-        &.severity-low, &.severity-info {
-          background: rgba(59, 130, 246, 0.15);
-          color: #93c5fd;
-          border: 1px solid rgba(59, 130, 246, 0.3);
-        }
-      }
-
-      // Text content area
-      .finding-text {
-        font-size: 15px;
-        color: rgba(248, 250, 252, 0.9);
-        line-height: 1.6;
-        letter-spacing: -0.005em;
-        word-break: break-word;
-        overflow-wrap: break-word;
-        margin-bottom: 8px;
-      }
-
-      // Evidence button - always on its own row
-      .view-evidence-btn {
-        align-self: flex-start;
-        padding: 10px 16px;
-        background: rgba(59, 130, 246, 0.12);
-        color: #60a5fa;
-        border: 1px solid rgba(59, 130, 246, 0.3);
-        border-radius: 6px;
-        font-size: 13px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        white-space: nowrap;
-        margin-top: 4px;
-
-        &:hover {
-          background: rgba(59, 130, 246, 0.2);
-          border-color: rgba(59, 130, 246, 0.5);
-          transform: translateY(-1px);
-          box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
-        }
-
-        &:active {
-          transform: translateY(0);
-        }
-      }
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      line-height: 1.55;
+      color: rgba(248,250,252,0.88);
+      padding: 10px 14px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 8px;
     }
-  }
-
-  .permissions-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-
-    .permission-chip {
+    .lm-bullet-num {
       display: inline-flex;
       align-items: center;
-      padding: 8px 14px;
-      border-radius: 8px;
+      justify-content: center;
+      min-width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background: rgba(34,211,238,0.12);
+      border: 1px solid rgba(34,211,238,0.22);
+      color: #22d3ee;
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+  }
+
+  // --- Risk Breakdown (categorised) ---
+  .lm-categories {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .lm-cat {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .lm-cat-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgba(248,250,252,0.4);
+    padding-left: 2px;
+  }
+  .lm-cat-items {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .lm-factor {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 8px;
+    transition: background 0.12s ease;
+
+    &:hover { background: rgba(255,255,255,0.035); }
+
+    .lm-factor-icon {
+      font-size: 16px;
+      flex-shrink: 0;
+      width: 24px;
+      text-align: center;
+    }
+    .lm-factor-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+    .lm-factor-label {
       font-size: 14px;
-      font-weight: 500;
-      letter-spacing: -0.005em;
-      transition: all 0.2s ease;
-
-      &:hover {
-        transform: translateY(-1px);
-      }
-
-      &.risk-high {
-        background: rgba(239, 68, 68, 0.12);
-        color: #fca5a5;
-        border: 1px solid rgba(239, 68, 68, 0.25);
-
-        &:hover {
-          background: rgba(239, 68, 68, 0.18);
-          border-color: rgba(239, 68, 68, 0.35);
-        }
-      }
-
-      &.risk-medium {
-        background: rgba(245, 158, 11, 0.12);
-        color: #fcd34d;
-        border: 1px solid rgba(245, 158, 11, 0.25);
-
-        &:hover {
-          background: rgba(245, 158, 11, 0.18);
-          border-color: rgba(245, 158, 11, 0.35);
-        }
-      }
-
-      &.risk-low {
-        background: rgba(34, 197, 94, 0.12);
-        color: #86efac;
-        border: 1px solid rgba(34, 197, 94, 0.25);
-
-        &:hover {
-          background: rgba(34, 197, 94, 0.18);
-          border-color: rgba(34, 197, 94, 0.35);
-        }
-      }
+      font-weight: 600;
+      color: rgba(248,250,252,0.9);
+    }
+    .lm-factor-desc {
+      font-size: 12px;
+      color: rgba(248,250,252,0.4);
+      line-height: 1.4;
+    }
+    .lm-factor-level {
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
   }
 
-  .policy-text {
-    font-size: 16px;
-    color: rgba(248, 250, 252, 0.7);
-    line-height: 1.6;
+  // --- Permissions (flat list) ---
+  .lm-perms-list {
+    list-style: none;
     margin: 0;
-    letter-spacing: -0.005em;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .lm-perm {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: rgba(248,250,252,0.85);
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.04);
+
+    .lm-perm-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .lm-perm-text { flex: 1; }
+
+    &.lm-perm-high {
+      border-color: rgba(239,68,68,0.18);
+      .lm-perm-dot { background: #EF4444; }
+    }
+    &.lm-perm-medium {
+      border-color: rgba(245,158,11,0.15);
+      .lm-perm-dot { background: #F59E0B; }
+    }
+    &.lm-perm-low {
+      .lm-perm-dot { background: rgba(248,250,252,0.25); }
+    }
   }
 
-  // Human-friendly layer details section
-  .human-friendly-section {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 24px;
-    margin-bottom: 24px;
-    transition: all 0.2s ease;
+  // --- What to Watch ---
+  .lm-watch {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 
-    &:hover {
-      background: rgba(255, 255, 255, 0.04);
-      border-color: rgba(255, 255, 255, 0.15);
-    }
+    li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      line-height: 1.5;
+      color: rgba(248,250,252,0.82);
+      padding: 10px 14px;
+      background: rgba(245,158,11,0.05);
+      border: 1px solid rgba(245,158,11,0.14);
+      border-radius: 8px;
 
-    .human-summary {
-      margin-bottom: 20px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-
-      .summary-text {
-        font-size: 18px;
-        font-weight: 500;
-        color: #f8fafc;
-        line-height: 1.5;
-        letter-spacing: -0.01em;
-      }
-    }
-
-    .key-points, .what-to-watch {
-      margin-bottom: 20px;
-
-      &:last-child {
-        margin-bottom: 0;
-      }
-
-      h4 {
-        font-size: 16px;
-        font-weight: 600;
-        color: rgba(248, 250, 252, 0.95);
-        margin: 0 0 12px 0;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        letter-spacing: -0.01em;
-      }
-
-      .key-points-title::before {
-        content: '🔍';
-        font-size: 16px;
-      }
-
-      .what-to-watch-title::before {
-        content: '👁';
-        font-size: 16px;
-      }
-
-      ul {
-        margin: 0;
-        padding: 0;
-        list-style: none;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-
-      li {
-        display: flex;
-        align-items: flex-start;
-        gap: 12px;
-        font-size: 16px;
-        line-height: 1.5;
-        padding: 8px 0;
-
-        .bullet {
-          color: #60a5fa;
-          font-weight: 700;
-          font-size: 16px;
-          line-height: 1;
-          margin-top: 4px;
-          flex-shrink: 0;
-          width: 20px;
-          text-align: center;
-        }
-
-        .point-text, .watch-text {
-          color: rgba(248, 250, 252, 0.9);
-          flex: 1;
-          font-weight: 400;
-          letter-spacing: -0.005em;
-        }
-      }
-    }
-
-    .what-to-watch {
-      .bullet {
-        color: #fbbf24;
-      }
-
-      li {
-        .watch-text {
-          color: rgba(248, 250, 252, 0.85);
-        }
+      &::before {
+        content: '⚠';
+        flex-shrink: 0;
+        font-size: 13px;
+        margin-top: 1px;
       }
     }
   }
 }
 
+// --- Responsive ---
+@media (max-width: 640px) {
+  .lm-content { max-width: 100%; }
+  .lm-body {
+    gap: 18px;
+    .lm-insight { padding: 14px; font-size: 15px; }
+    .lm-factor {
+      flex-wrap: wrap;
+      .lm-factor-level { width: 100%; text-align: right; }
+    }
+  }
+}

@@ -3,20 +3,17 @@ import './SummaryPanel.scss';
 import { normalizeHighlights } from '../../utils/normalizeScanResult';
 
 /**
- * SummaryPanel - Human-readable summary using LLM-generated content when available
+ * SummaryPanel - Consumer-friendly summary following the format:
  * 
- * Shows:
- * - One-liner summary (from LLM if available)
- * - Key points (from LLM why_this_score or fallback to deterministic)
- * - Key findings (top 2-3 findings, no tags)
- * - What to watch (if available)
+ * 1) Verdict line (max 12 words)
+ * 2) 2-3 bullet reasons (plain English)
+ * 3) 1 bullet "What it can access"
+ * 4) 1 bullet "What to do"
+ * Total: <= 80 words
  * 
- * Props:
- * - scores: ScoresVM - Contains decision and reasons
- * - factorsByLayer: FactorsByLayerVM - All factors
- * - rawScanResult: RawScanResult - Raw scan data to access LLM summary
- * - keyFindings: KeyFindingVM[] - Key findings to display
- * - onViewEvidence: (evidenceIds: string[]) => void - Callback for viewing evidence
+ * Data sources (priority order):
+ * A. consumer_summary from report_view_model (new format)
+ * B. Fallback to legacy normalizeHighlights
  */
 const SummaryPanel = ({ 
   scores = {},
@@ -25,11 +22,17 @@ const SummaryPanel = ({
   keyFindings = [],
   onViewEvidence = null
 }) => {
-  // Use unified normalization helper for highlights
+  // Try new consumer_summary format first
+  const consumerSummary = rawScanResult?.report_view_model?.consumer_summary;
+  
+  // Fallback to legacy highlights
   const { oneLiner, keyPoints, whatToWatch } = normalizeHighlights(rawScanResult);
 
-  // If we have no oneLiner and no keyPoints, it's really empty
-  if (!oneLiner && keyPoints.length === 0) {
+  // Use consumer summary if available, otherwise legacy format
+  const hasConsumerSummary = consumerSummary && consumerSummary.verdict;
+  const hasLegacy = oneLiner || keyPoints.length > 0;
+
+  if (!hasConsumerSummary && !hasLegacy) {
     return null;
   }
 
@@ -55,6 +58,77 @@ const SummaryPanel = ({
     );
   };
 
+  // New consumer-friendly layout
+  if (hasConsumerSummary) {
+    const { verdict, reasons = [], access, action } = consumerSummary;
+
+    return (
+      <section className="summary-panel">
+        <div className="summary-header">
+          <h2 className="summary-title">
+            <span className="title-icon">✨</span>
+            Quick Summary
+          </h2>
+          {getDecisionBadge()}
+        </div>
+
+        <div className="summary-content">
+          {/* Verdict - the headline */}
+          {verdict && (
+            <div className="summary-verdict-wrapper">
+              <p className="summary-verdict">{verdict}</p>
+            </div>
+          )}
+
+          {/* Reasons - why this score */}
+          {reasons.length > 0 && (
+            <div className="summary-section key-reasons">
+              <h3 className="section-subtitle">
+                <span className="subtitle-icon">📌</span>
+                Why This Score
+              </h3>
+              <div className="reasons-list">
+                {reasons.map((reason, idx) => (
+                  <div key={idx} className="reason-card">
+                    <span className="reason-number">{idx + 1}</span>
+                    <p className="reason-text">{reason}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Access - what it can access */}
+          {access && (
+            <div className="summary-section access-section">
+              <h3 className="section-subtitle">
+                <span className="subtitle-icon">🔑</span>
+                What It Can Access
+              </h3>
+              <div className="access-card">
+                <span className="access-text">{access}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Action - what to do */}
+          {action && (
+            <div className="summary-section action-section">
+              <h3 className="section-subtitle">
+                <span className="subtitle-icon">👉</span>
+                What to Do
+              </h3>
+              <div className="action-card">
+                <span className="action-text">{action}</span>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+    );
+  }
+
+  // Legacy layout (fallback when consumer_summary is not available)
   return (
     <section className="summary-panel">
       <div className="summary-header">
@@ -66,45 +140,43 @@ const SummaryPanel = ({
       </div>
 
       <div className="summary-content">
-        {/* One-liner summary - Prominent */}
+        {/* One-liner summary */}
         {oneLiner && (
-          <div className="summary-one-liner-wrapper">
-            <p className="summary-one-liner">
-              {oneLiner}
-            </p>
+          <div className="summary-verdict-wrapper">
+            <p className="summary-verdict">{oneLiner}</p>
           </div>
         )}
 
-        {/* Key Points - Visual cards */}
+        {/* Key Points */}
         {keyPoints.length > 0 && (
-          <div className="summary-section key-points">
+          <div className="summary-section key-reasons">
             <h3 className="section-subtitle">
               <span className="subtitle-icon">📌</span>
               Why This Score
             </h3>
-            <div className="key-points-grid">
+            <div className="reasons-list">
               {keyPoints.map((point, idx) => (
-                <div key={idx} className="key-point-card">
-                  <span className="point-number">{idx + 1}</span>
-                  <p className="point-text">{point}</p>
+                <div key={idx} className="reason-card">
+                  <span className="reason-number">{idx + 1}</span>
+                  <p className="reason-text">{point}</p>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* What to Watch - Compact warnings */}
+        {/* What to Watch */}
         {whatToWatch.length > 0 && (
-          <div className="summary-section what-to-watch">
+          <div className="summary-section action-section">
             <h3 className="section-subtitle">
-              <span className="subtitle-icon">👀</span>
+              <span className="subtitle-icon">👁️</span>
               What to Watch
             </h3>
             <div className="watch-items">
               {whatToWatch.map((item, idx) => (
-                <div key={idx} className="watch-item">
+                <div key={idx} className="action-card">
                   <span className="watch-icon">⚠️</span>
-                  <span className="watch-text">{item}</span>
+                  <span className="action-text">{item}</span>
                 </div>
               ))}
             </div>
@@ -116,4 +188,3 @@ const SummaryPanel = ({
 };
 
 export default SummaryPanel;
-

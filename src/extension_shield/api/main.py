@@ -2455,19 +2455,13 @@ async def get_scan_results(extension_id: str, http_request: Request):
     """
     logger.info("[DEBUG get_scan_results] extension_id=%s", extension_id)
     
-    # Authorization check: verify user owns this scan
+    # Authorization: logged-in users may view any completed scan.
+    # Only block if an *in-progress* scan belongs to a *different* user.
     user_id = getattr(getattr(http_request, "state", None), "user_id", None)
     if user_id:
-        # Check in-progress scans
         scan_owner = scan_user_ids.get(extension_id)
         if scan_owner and scan_owner != user_id:
             raise HTTPException(status_code=403, detail="Access denied")
-        # Check completed scans via user history
-        user_history = db.get_user_scan_history(user_id=user_id, limit=1000)
-        if not any(item.get("extension_id") == extension_id for item in user_history):
-            # Not in user's history - check if scan is in progress (allow) or deny
-            if extension_id not in scan_user_ids:
-                raise HTTPException(status_code=403, detail="Access denied")
     
     # Try memory first
     if extension_id in scan_results:
@@ -2701,16 +2695,12 @@ async def get_file_list(extension_id: str, http_request: Request) -> FileListRes
     Returns:
         List of file paths
     """
-    # Authorization check: verify user owns this scan
+    # Authorization: block only if in-progress scan belongs to a different user
     user_id = getattr(getattr(http_request, "state", None), "user_id", None)
     if user_id:
         scan_owner = scan_user_ids.get(extension_id)
         if scan_owner and scan_owner != user_id:
             raise HTTPException(status_code=403, detail="Access denied")
-        user_history = db.get_user_scan_history(user_id=user_id, limit=1000)
-        if not any(item.get("extension_id") == extension_id for item in user_history):
-            if extension_id not in scan_user_ids:
-                raise HTTPException(status_code=403, detail="Access denied")
     
     results = scan_results.get(extension_id)
     if not results:
@@ -2736,16 +2726,12 @@ async def get_file_content(extension_id: str, file_path: str, http_request: Requ
     Returns:
         File content
     """
-    # Authorization check: verify user owns this scan
+    # Authorization: block only if in-progress scan belongs to a different user
     user_id = getattr(getattr(http_request, "state", None), "user_id", None)
     if user_id:
         scan_owner = scan_user_ids.get(extension_id)
         if scan_owner and scan_owner != user_id:
             raise HTTPException(status_code=403, detail="Access denied")
-        user_history = db.get_user_scan_history(user_id=user_id, limit=1000)
-        if not any(item.get("extension_id") == extension_id for item in user_history):
-            if extension_id not in scan_user_ids:
-                raise HTTPException(status_code=403, detail="Access denied")
     
     results = scan_results.get(extension_id)
     if not results:

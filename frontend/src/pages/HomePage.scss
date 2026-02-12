@@ -32,7 +32,7 @@
 }
 
 /* ============================================================================
-   HERO SECTION
+   HERO SECTION - Two-column layout with frosted glass card
    ============================================================================ */
 .hero-section {
   position: relative;
@@ -40,10 +40,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 10rem 2rem 2rem;
-  padding-top: 200px;
+  justify-content: flex-start;
+  padding: 8.5rem 2rem 2rem;
   overflow: hidden;
-  gap: 4rem;
+  gap: 0;
 }
 
 /* Background */
@@ -71,6 +71,27 @@
   mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
 }
 
+/* Star texture - cosmic/subtle grain */
+.bg-stars {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(2px 2px at 20px 30px, rgba(255, 255, 255, 0.15), transparent),
+    radial-gradient(2px 2px at 40px 70px, rgba(255, 255, 255, 0.08), transparent),
+    radial-gradient(2px 2px at 50px 160px, rgba(255, 255, 255, 0.1), transparent),
+    radial-gradient(2px 2px at 90px 40px, rgba(255, 255, 255, 0.12), transparent),
+    radial-gradient(2px 2px at 130px 80px, rgba(255, 255, 255, 0.06), transparent),
+    radial-gradient(2px 2px at 160px 120px, rgba(255, 255, 255, 0.1), transparent);
+  background-size: 200px 200px;
+  opacity: 0.8;
+  animation: starTwinkle 12s ease-in-out infinite;
+}
+
+@keyframes starTwinkle {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 0.95; }
+}
+
 .bg-glow {
   position: absolute;
   border-radius: 50%;
@@ -96,364 +117,208 @@
   transform: translateX(-50%);
 }
 
-/* ============================================================================
-   RED RADAR SCANNER EFFECT
-   ============================================================================ */
-.radar-scanner {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 800px;
-  height: 800px;
-  pointer-events: none;
-  opacity: 0.4;
-}
-
-.radar-ring {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  border: 1px solid rgba(239, 68, 68, 0.15);
-}
-
-.radar-ring-1 {
-  width: 200px;
-  height: 200px;
-}
-
-.radar-ring-2 {
-  width: 400px;
-  height: 400px;
-}
-
-.radar-ring-3 {
-  width: 600px;
-  height: 600px;
-}
-
-.radar-ring-4 {
-  width: 800px;
-  height: 800px;
-}
-
-.radar-sweep {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 400px;
-  height: 2px;
-  background: linear-gradient(90deg, 
-    rgba(239, 68, 68, 0.8) 0%, 
-    rgba(239, 68, 68, 0.4) 30%,
-    rgba(239, 68, 68, 0) 100%
-  );
-  transform-origin: left center;
-  animation: radarSweep 4s linear infinite;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: -100px;
-    left: 0;
-    width: 400px;
-    height: 200px;
-    background: conic-gradient(
-      from -90deg at 0% 50%,
-      transparent 0deg,
-      rgba(239, 68, 68, 0.1) 30deg,
-      rgba(239, 68, 68, 0.05) 60deg,
-      transparent 90deg
-    );
-    transform-origin: left center;
-  }
-}
-
-.radar-center {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 8px;
-  height: 8px;
-  background: rgba(239, 68, 68, 0.6);
-  border-radius: 50%;
-  box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
-}
-
-@keyframes radarSweep {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-/* Hero Headline - Title & Subtitle */
-.hero-headline {
-  text-align: center;
-  max-width: 800px;
+/* Hero Grid - Two-column layout (left 2/3, right 1/3) */
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: clamp(2rem, 4vw, 4rem);
+  align-items: center;
   width: 100%;
-  padding: 0 2rem;
-  order: 1; // Desktop: first (above device)
-  opacity: 0;
-  transform: translateY(20px);
-  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  max-width: 1200px;
+  padding: 0 2rem 5rem;
+  margin: 0 auto;
+  flex: 1;
+}
 
-  &.visible {
-    opacity: 1;
-    transform: translateY(0);
+/* Hero Left - Tagline, Headline, Input, CTA (hero-scan-info) - Typography scale */
+.hero-left {
+  text-align: left;
+  padding-left: 1rem;
+  padding-right: 1rem;
+
+  .hero-tagline {
+    font-size: clamp(0.6875rem, 1.5vw, 0.75rem);
+    font-weight: 600;
+    color: var(--atlas-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.625rem;
+    line-height: 1.4;
   }
 
   .hero-title {
-    font-size: clamp(2.25rem, 6vw, 3.5rem);
+    font-size: clamp(1.875rem, 4.2vw, 3.25rem);
     font-weight: 600;
-    line-height: 1.2;
-    margin-bottom: 0.75rem;
-    letter-spacing: -0.02em;
-
-    .highlight {
-      background: linear-gradient(135deg, var(--atlas-accent) 0%, #4ade80 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
+    line-height: 1.15;
+    margin-bottom: 1rem;
+    letter-spacing: -0.025em;
   }
 
   .hero-subtitle {
-    font-size: 1.0625rem;
+    font-size: clamp(0.9375rem, 1.8vw, 1.0625rem);
     color: var(--atlas-text-secondary);
-    line-height: 1.6;
-    margin-bottom: 0.5rem;
-    max-width: 520px;
-    margin-left: auto;
-    margin-right: auto;
+    line-height: 1.55;
+    margin-bottom: 1.75rem;
+    max-width: 480px;
   }
-  
-  .honey-logo-small {
-    display: inline-flex;
-    align-items: center;
+}
+
+/* Hero Right - Frosted glass card */
+.hero-right {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Frosted Glass Card - Scan results preview
+   Background aligned with hero (atlas palette) for brand consistency.
+   Contrast: --atlas-text-primary / --atlas-text-muted on dark base (WCAG AA).
+   Alternatives: (1) Softer blend: background: rgba(17, 24, 39, 0.85); border with rgba(34,197,94,0.12);
+   (2) Deeper match: background: var(--atlas-bg-primary); border: 1px solid rgba(148,163,184,0.15); */
+.hero-glass-card {
+  width: 100%;
+  max-width: 360px;
+  padding: 2rem;
+  background: var(--atlas-bg-secondary);
+  background: color-mix(in srgb, var(--atlas-bg-secondary) 96%, var(--atlas-bg-primary) 4%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--atlas-border);
+  border-radius: 20px;
+  box-shadow: 
+    0 16px 40px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 1px 0 rgba(34, 197, 94, 0.06);
+}
+
+/* Glass card icon - extension icon (no radiating circles), compact */
+.glass-icon-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 auto 1.25rem;
+}
+
+.glass-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+
+  .extension-icon-svg {
     width: 28px;
     height: 28px;
-    flex-shrink: 0;
-    opacity: 0.9;
-    transition: all 0.3s ease;
-    
-    svg {
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
-    
-    &:hover {
-      opacity: 1;
-      transform: scale(1.1);
-    }
   }
 }
 
-/* Hero Content - Device & Badges */
-.hero-content {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  max-width: 1400px;
-  min-height: 580px;
-  margin-bottom: 2rem;
-  padding: 0 1rem;
-  order: 3; // Desktop: last (below headline and actions)
-  opacity: 0;
-  transform: translateY(30px);
-  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.3s;
-
-  &.visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* ============================================================================
-   FLOATING SECURITY BADGES - Physics-based movement
-   ============================================================================ */
-.floating-badge {
-  position: absolute;
-  top: 0;
-  left: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 1.25rem 1.5rem;
-  background: rgba(15, 20, 30, 0.95);
-  border-radius: 12px;
-  backdrop-filter: blur(12px);
-  box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(255, 255, 255, 0.05);
-  z-index: 10;
-  min-width: 140px;
-  will-change: transform;
-  pointer-events: auto;
-  
-  // Physics badges use transform for positioning
-  &.physics-badge {
-    transition: box-shadow 0.3s ease, border-color 0.3s ease;
-  }
-
-  &:hover {
-    box-shadow: 
-      0 12px 40px rgba(0, 0, 0, 0.5),
-      0 0 0 1px rgba(255, 255, 255, 0.1);
-  }
-
-  .badge-icon {
-    font-size: 1.5rem;
-    line-height: 1;
-    margin-bottom: 0.25rem;
-  }
-
-  .badge-label {
-    font-size: 0.8125rem;
-    font-weight: 500;
-    color: var(--atlas-text-secondary);
-    text-align: center;
-    white-space: nowrap;
-  }
-
-  .badge-status {
-    font-size: 0.6875rem;
-    font-weight: 700;
-    padding: 0.25rem 0.75rem;
-    border-radius: 4px;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-  }
-
-  // Detected variant - subtle red
-  &.detected {
-    border: 1px solid rgba(185, 28, 28, 0.4);
-    
-    .badge-status {
-      background: rgba(185, 28, 28, 0.3);
-      color: #fca5a5;
-      border: 1px solid rgba(185, 28, 28, 0.5);
-    }
-
-    &:hover {
-      border-color: rgba(185, 28, 28, 0.6);
-    }
-  }
-
-  // Clear variant - subtle green/teal
-  &.clear {
-    border: 1px solid rgba(20, 83, 45, 0.4);
-    
-    .badge-status {
-      background: rgba(20, 83, 45, 0.4);
-      color: #86efac;
-      border: 1px solid rgba(34, 197, 94, 0.4);
-    }
-
-    &:hover {
-      border-color: rgba(34, 197, 94, 0.5);
-    }
-  }
-}
-
-/* ============================================================================
-   SCANNER DEVICE (Phone Mockup)
-   ============================================================================ */
-.scanner-device {
-  position: relative;
-  z-index: 5;
-  margin: 0 auto;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.device-frame {
-  position: relative;
-  width: 280px;
-  height: 580px;
-  background: linear-gradient(145deg, #111827 0%, #0d1424 100%);
-  border-radius: 40px;
-  padding: 12px;
-  box-shadow: 
-    0 0 0 1px rgba(255, 255, 255, 0.1),
-    0 25px 80px rgba(0, 0, 0, 0.5),
-    0 0 100px rgba(139, 92, 246, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-.device-notch {
-  position: absolute;
-  top: 18px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100px;
-  height: 28px;
-  background: #0d1424;
-  border-radius: 20px;
-  z-index: 10;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 8px;
-    height: 8px;
-    background: #111827;
-    border-radius: 50%;
-  }
-}
-
-.device-screen {
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(180deg, #0d1424 0%, #111827 100%);
-  border-radius: 32px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  padding: 3rem 1.25rem 1.5rem;
-}
-
-/* Scanner Header */
-.scanner-header {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 1.5rem;
-}
-
-.scanner-status {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.375rem 0.875rem;
-  background: rgba(34, 197, 94, 0.1);
-  border: 1px solid rgba(34, 197, 94, 0.3);
-  border-radius: 20px;
+.glass-extension-label {
   font-size: 0.75rem;
   font-weight: 600;
-  color: var(--atlas-accent);
+  color: var(--atlas-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
 }
 
-.status-dot {
-  width: 6px;
-  height: 6px;
-  background: var(--atlas-accent);
-  border-radius: 50%;
-  animation: pulse 1.5s ease-in-out infinite;
+.glass-card-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
 }
 
+.glass-row {
+  .glass-row-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+
+    .glass-row-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      margin-top: 2px;
+
+      &.safe {
+        color: #22c55e;
+      }
+      &.warning {
+        color: #f59e0b;
+      }
+    }
+
+    div {
+      display: flex;
+      flex-direction: column;
+      gap: 0.125rem;
+
+      strong {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        color: var(--atlas-text-primary);
+      }
+      span {
+        font-size: 0.8125rem;
+        color: var(--atlas-text-muted);
+      }
+    }
+  }
+}
+
+.glass-progress-bar {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.glass-progress-fill {
+  height: 100%;
+  border-radius: 2px;
+
+  &.safe {
+    background: linear-gradient(90deg, #22c55e, #4ade80);
+  }
+  &.warning {
+    background: linear-gradient(90deg, #f59e0b, #fbbf24);
+  }
+}
+
+.glass-card-meta {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.75rem;
+  color: var(--atlas-text-muted);
+}
+
+/* Hero scan info - checkmark line below input, 2rem space above (from search bar) */
+.hero-scan-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+  font-size: clamp(0.8125rem, 1.4vw, 0.875rem);
+  color: var(--atlas-text-secondary);
+  line-height: 1.45;
+
+  .hero-scan-check {
+    width: clamp(16px, 2vw, 18px);
+    height: clamp(16px, 2vw, 18px);
+    flex-shrink: 0;
+    color: var(--atlas-accent);
+  }
+}
+
+/* Keyframes used by hero stats bar (live-dot, typewriter-cursor) */
 @keyframes pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.5; transform: scale(1.2); }
@@ -464,188 +329,13 @@
   51%, 100% { opacity: 0; }
 }
 
-/* Scanner Visualization */
-.scanner-visual {
-  position: relative;
-  width: 160px;
-  height: 160px;
-  margin: 0 auto 1.5rem;
-}
+/* Hero search auth/error hints inherit from hero-search */
 
-.scan-rings {
-  position: absolute;
-  inset: 0;
-}
-
-.ring {
-  position: absolute;
-  border-radius: 50%;
-  border: 1px solid rgba(34, 197, 94, 0.2);
-
-  &.ring-1 {
-    inset: 0;
-    animation: ringPulse 3s ease-out infinite;
-  }
-
-  &.ring-2 {
-    inset: 20px;
-    animation: ringPulse 3s ease-out infinite 0.5s;
-  }
-
-  &.ring-3 {
-    inset: 40px;
-    animation: ringPulse 3s ease-out infinite 1s;
-  }
-}
-
-@keyframes ringPulse {
-  0% { 
-    opacity: 0.8;
-    border-color: rgba(34, 197, 94, 0.4);
-  }
-  100% { 
-    opacity: 0;
-    border-color: rgba(34, 197, 94, 0);
-    transform: scale(1.3);
-  }
-}
-
-.scan-center {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 64px;
-  height: 64px;
-  background: rgba(34, 197, 94, 0.1);
-  border: 2px solid var(--atlas-accent);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 0 30px var(--atlas-accent-glow);
-
-  svg {
-    width: 28px;
-    height: 28px;
-    stroke: var(--atlas-accent);
-  }
-}
-
-.scan-line {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 2px;
-  height: 80px;
-  background: linear-gradient(to bottom, var(--atlas-accent), transparent);
-  transform-origin: top center;
-  opacity: 0.6;
-}
-
-/* Scanner Status Text */
-.scanner-status-text {
-  text-align: center;
-  margin-bottom: 1.25rem;
-}
-
-.status-label {
-  font-size: 0.8125rem;
-  color: var(--atlas-text-secondary);
-  animation: fadeText 2s ease-in-out infinite;
-}
-
-@keyframes fadeText {
-  0%, 100% { opacity: 0.7; }
-  50% { opacity: 1; }
-}
-
-/* Threat Rows */
-.scanner-threats {
-  display: flex;
-  flex-direction: column;
-  gap: 0.625rem;
-  margin-bottom: auto;
-}
-
-.threat-row {
-  display: flex;
-  align-items: center;
-  gap: 0.625rem;
-  padding: 0.625rem 0.875rem;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 10px;
-  font-size: 0.8125rem;
-
-  &.scanning {
-    background: rgba(139, 92, 246, 0.1);
-    border: 1px solid rgba(139, 92, 246, 0.2);
-  }
-}
-
-.threat-icon {
-  font-size: 0.875rem;
-  
-  &.safe {
-    color: var(--atlas-accent);
-  }
-}
-
-.threat-name {
-  color: var(--atlas-text-secondary);
-  font-weight: 500;
-}
-
-/* Scanner Action */
-.scanner-action {
-  margin-top: 1rem;
-}
-
-.action-btn {
-  width: 100%;
-  padding: 0.875rem;
-  background: linear-gradient(135deg, var(--atlas-accent) 0%, #16a34a 100%);
-  border-radius: 12px;
-  text-align: center;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #0d1424;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 16px var(--atlas-accent-glow);
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px var(--atlas-accent-glow);
-  }
-}
-
-/* ============================================================================
-   HERO ACTIONS SECTION (Search + Stats)
-   ============================================================================ */
-.hero-actions {
-  text-align: center;
-  max-width: 800px;
-  width: 100%;
-  padding: 0 2rem;
-  margin: 0 auto;
-  /* margin-top: 0; */
-  order: 2; // Desktop: second (between headline and device)
-  opacity: 0;
-  transform: translateY(20px);
-  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.15s;
-
-  &.visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Hero Search */
+/* Hero Search - Inside hero-left, scaling with viewport */
 .hero-search {
   width: 100%;
-  max-width: 580px;
-  margin: 0 auto;
+  max-width: 520px;
+  margin-bottom: 0.5rem;
 }
 
 .search-container {
@@ -671,11 +361,19 @@
     width: 40px;
     height: 40px;
     flex-shrink: 0;
-    
+
     svg {
       width: 20px;
       height: 20px;
       stroke: var(--atlas-text-muted);
+    }
+
+    &.search-icon-chrome {
+      .chrome-logo {
+        width: 22px;
+        height: 22px;
+        stroke: none;
+      }
     }
   }
 
@@ -684,9 +382,9 @@
     background: transparent;
     border: none;
     outline: none;
-    font-size: 0.9375rem;
+    font-size: clamp(0.875rem, 1.6vw, 0.9375rem);
     color: var(--atlas-text-primary);
-    padding: 0.75rem;
+    padding: 0.75rem 0.5rem;
     font-family: inherit;
     min-width: 0;
 
@@ -699,11 +397,12 @@
 .search-btn {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.875rem 1.5rem;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  min-width: 100px;
   background: linear-gradient(135deg, var(--atlas-accent) 0%, #16a34a 100%);
   color: #0d1424;
-  font-size: 0.9375rem;
+  font-size: clamp(0.875rem, 1.6vw, 0.9375rem);
   font-weight: 600;
   border: none;
   border-radius: 12px;
@@ -711,17 +410,42 @@
   transition: all 0.3s ease;
   font-family: inherit;
 
-  svg {
-    width: 18px;
-    height: 18px;
-    transition: transform 0.3s ease;
-  }
-
   &:hover {
     box-shadow: 0 8px 24px var(--atlas-accent-glow);
-    
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--atlas-accent);
+    outline-offset: 2px;
+  }
+
+  /* Magnifying glass search button: no background or border, hover only */
+  &.search-btn-icon {
+    min-width: 0;
+    width: 48px;
+    min-height: 48px;
+    padding: 0.75rem;
+    background: none;
+    border: none;
+    color: var(--atlas-text-primary);
+    border-radius: 10px;
+    transition: background-color 0.2s ease;
+
     svg {
-      transform: translateX(3px);
+      width: 22px;
+      height: 22px;
+      stroke: currentColor;
+      stroke-width: 2;
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.05);
+      box-shadow: none;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--atlas-text-primary);
+      outline-offset: 2px;
     }
   }
 }
@@ -762,13 +486,13 @@
   border-radius: 8px;
 }
 
-/* Watch demo link - Tango step-by-step (copy URL → paste here) */
+/* Watch demo link - Tango step-by-step (copy URL → paste here), scaled */
 .hero-demo-link {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  margin-top: 0.875rem;
-  font-size: 0.8125rem;
+  margin-top: 1rem;
+  font-size: clamp(0.75rem, 1.3vw, 0.8125rem);
   font-weight: 500;
   color: var(--atlas-text-muted);
   text-decoration: none;
@@ -803,26 +527,19 @@
   }
 }
 
-/* Stats Bar */
+/* Stats Bar - anchored at bottom of hero */
 .stats-bar {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 1.5rem;
   padding: 1rem 1.5rem;
+  margin-top: auto;
+  flex-shrink: 0;
   background: rgba(13, 20, 36, 0.8);
   border: 1px solid var(--atlas-border);
   border-radius: 16px;
   backdrop-filter: blur(10px);
-  order: 4; // Desktop: after device
-  opacity: 0;
-  transform: translateY(20px);
-  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.4s;
-
-  &.visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .stat-item {
@@ -899,6 +616,7 @@
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
+  margin-top: 0.75rem;
   padding: 0.75rem 1.5rem;
   background: transparent;
   border: none;
@@ -2235,54 +1953,29 @@
 /* ============================================================================
    RESPONSIVE
    ============================================================================ */
-@media (max-width: 1280px) {
-  .floating-badge {
-    padding: 1rem 1.25rem;
-    min-width: 120px;
-    
-    .badge-label {
-      font-size: 0.75rem;
-    }
-
-    .badge-icon {
-      font-size: 1.25rem;
-    }
-
-    .badge-status {
-      font-size: 0.625rem;
-      padding: 0.2rem 0.5rem;
-    }
-  }
-}
-
 @media (max-width: 1024px) {
-  .floating-badge {
-    padding: 0.875rem 1rem;
-    min-width: 100px;
-    
-    .badge-label {
-      font-size: 0.6875rem;
-    }
+  .hero-grid {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
 
-    .badge-icon {
-      font-size: 1.125rem;
-    }
+  .hero-left {
+    text-align: center;
 
-    .badge-status {
-      font-size: 0.5625rem;
-      padding: 0.175rem 0.4rem;
+    .hero-subtitle {
+      margin-left: auto;
+      margin-right: auto;
     }
   }
 
-  .radar-scanner {
-    width: 600px;
-    height: 600px;
-    opacity: 0.3;
+  .hero-search {
+    margin: 0 auto;
   }
 
-  .radar-ring-3 { width: 450px; height: 450px; }
-  .radar-ring-4 { width: 600px; height: 600px; }
-  .radar-sweep { width: 300px; }
+  .hero-right {
+    max-width: 360px;
+    margin: 0 auto;
+  }
 
   .case-study-content {
     grid-template-columns: 1fr;
@@ -2304,15 +1997,25 @@
 
 @media (max-width: 768px) {
   .hero-section {
-    padding: 6rem 1rem 2rem;
+    padding: 8.5rem 1rem 2rem;
     min-height: auto;
     gap: 1.25rem;
   }
 
-  /* Mobile: Headline → Actions → Device → Stats */
-  .hero-headline {
+  /* Mobile: Stack hero grid (left first, then glass card) */
+  .hero-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    padding: 0 1rem 5rem;
     order: 1;
-    padding: 0 1rem;
+  }
+
+  .hero-left {
+    text-align: center;
+
+    .hero-tagline {
+      text-align: center;
+    }
 
     .hero-title {
       font-size: clamp(1.5rem, 5vw, 1.75rem);
@@ -2322,29 +2025,33 @@
     .hero-subtitle {
       font-size: 0.9375rem;
       line-height: 1.5;
-      padding: 0 0.25rem;
+      margin-left: auto;
+      margin-right: auto;
     }
   }
 
-  .hero-actions {
-    order: 2;
-    padding: 0 1rem;
+  .hero-search {
+    max-width: 100%;
+    margin: 0 auto;
   }
 
-  .hero-content {
-    order: 3;
-    min-height: auto;
-    margin-bottom: 0;
+  .hero-right {
+    order: 2;
+  }
+
+  .hero-glass-card {
+    max-width: 100%;
+    margin: 0 auto;
   }
 
   .stats-bar {
-    order: 4;
+    order: 3;
     margin: 0 1rem;
     padding: 0.875rem 1rem;
   }
   
   .scroll-cue {
-    order: 5;
+    order: 4;
     padding: 0.5rem 1rem;
     font-size: 0.8125rem;
     
@@ -2354,10 +2061,6 @@
     }
   }
 
-  .floating-badge {
-    display: none !important;
-  }
-  
   /* Bridge Section Mobile */
   .bridge-section {
     padding: 3rem 1rem 4rem;
@@ -2419,42 +2122,6 @@
   
   .deception-footer {
     font-size: 0.9375rem;
-  }
-
-  .radar-scanner {
-    width: 400px;
-    height: 400px;
-    opacity: 0.2;
-  }
-
-  .radar-ring-2 { width: 200px; height: 200px; }
-  .radar-ring-3 { width: 300px; height: 300px; }
-  .radar-ring-4 { width: 400px; height: 400px; }
-  .radar-sweep { width: 200px; }
-
-  .device-frame {
-    width: 220px;
-    height: 460px;
-  }
-
-  .device-screen {
-    padding: 2.5rem 1rem 1.25rem;
-  }
-
-  .scanner-visual {
-    width: 120px;
-    height: 120px;
-    margin-bottom: 1rem;
-  }
-
-  .scan-center {
-    width: 48px;
-    height: 48px;
-    
-    svg {
-      width: 22px;
-      height: 22px;
-    }
   }
 
   .search-container {
@@ -2582,31 +2249,6 @@
 @media (max-width: 480px) {
   .hero-headline .hero-title {
     font-size: 1.5rem;
-  }
-
-  .device-frame {
-    width: 200px;
-    height: 420px;
-  }
-
-  .scanner-visual {
-    width: 100px;
-    height: 100px;
-  }
-
-  .scan-center {
-    width: 44px;
-    height: 44px;
-
-    svg {
-      width: 20px;
-      height: 20px;
-    }
-  }
-
-  .threat-row {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.75rem;
   }
 
   .stats-bar {

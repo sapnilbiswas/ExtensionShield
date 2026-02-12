@@ -1,27 +1,11 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { useScan } from "../context/ScanContext";
 import { useAuth } from "../context/AuthContext";
+import databaseService from "../services/databaseService";
 import SEOHead from "../components/SEOHead";
 import "./HomePage.scss";
-
-// Static configuration - defined outside component to prevent recreation
-const BADGE_CONFIG = [
-  { id: 0, icon: "👁️", label: "Keystroke Logging", status: "detected", side: "left" },
-  { id: 1, icon: "🔐", label: "Password Theft", status: "clear", side: "left" },
-  { id: 2, icon: "📤", label: "Data Exfiltration", status: "detected", side: "left" },
-  { id: 3, icon: "📹", label: "Camera Access", status: "detected", side: "right" },
-  { id: 4, icon: "🌍", label: "Foreign Servers", status: "clear", side: "right" },
-  { id: 5, icon: "💳", label: "Banking Fraud", status: "detected", side: "right" },
-];
-
-const SCAN_STATUS_MESSAGES = [
-  "Checking permissions...",
-  "Analyzing JavaScript...",
-  "Scanning for data exfiltration...",
-  "Detecting keyloggers...",
-  "Verifying API endpoints...",
-];
 
 // Real extension listings (Chrome Web Store style)
 const EXTENSION_CARDS = [
@@ -41,14 +25,25 @@ const HomePage = () => {
   const { isAuthenticated, openSignInModal } = useAuth();
   const [isVisible, setIsVisible] = useState(false);
   const [scanInput, setScanInput] = useState("");
-  const [scanProgress, setScanProgress] = useState(0);
-  const [currentThreat, setCurrentThreat] = useState(0);
-  const [badgePositions, setBadgePositions] = useState([]);
   const [revealedSections, setRevealedSections] = useState({});
   const [extensionSlideIndex, setExtensionSlideIndex] = useState(0);
-  const containerRef = useRef(null);
-  const animationRef = useRef(null);
-  const badgesRef = useRef([]);
+  const [extensionsScannedCount, setExtensionsScannedCount] = useState(null);
+
+  // Fetch live extension scan count from database
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const stats = await databaseService.getStatistics();
+        if (!cancelled && typeof stats?.total_scans === "number") {
+          setExtensionsScannedCount(stats.total_scans);
+        }
+      } catch {
+        if (!cancelled) setExtensionsScannedCount(0);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   // Scroll reveal observer
   useEffect(() => {
@@ -76,209 +71,9 @@ const HomePage = () => {
     document.getElementById("proof")?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Initialize badge positions
-  const initializeBadges = useCallback(() => {
-    if (!containerRef.current) return;
-    
-    const container = containerRef.current.getBoundingClientRect();
-    const phoneWidth = 300;
-    const phoneHeight = 600;
-    const badgeWidth = 150;
-    const badgeHeight = 110;
-    const padding = 20;
-    
-    // Calculate zones - left side and right side of phone
-    const centerX = container.width / 2;
-    const centerY = container.height / 2;
-    const phoneLeft = centerX - phoneWidth / 2;
-    const phoneRight = centerX + phoneWidth / 2;
-    
-    const initialPositions = BADGE_CONFIG.map((badge, index) => {
-      let x, y;
-      const isLeft = badge.side === "left";
-      
-      if (isLeft) {
-        // Left side badges - spread vertically
-        x = padding + Math.random() * (phoneLeft - badgeWidth - padding * 3);
-        y = padding + (index % 3) * ((container.height - badgeHeight - padding * 2) / 3) + Math.random() * 40;
-      } else {
-        // Right side badges - spread vertically
-        x = phoneRight + padding + Math.random() * (container.width - phoneRight - badgeWidth - padding * 2);
-        y = padding + ((index - 3) % 3) * ((container.height - badgeHeight - padding * 2) / 3) + Math.random() * 40;
-      }
-      
-      // Random velocity in all directions
-      const speed = 0.3 + Math.random() * 0.4;
-      const angle = Math.random() * Math.PI * 2;
-      
-      return {
-        ...badge,
-        x: Math.max(padding, Math.min(x, container.width - badgeWidth - padding)),
-        y: Math.max(padding, Math.min(y, container.height - badgeHeight - padding)),
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        width: badgeWidth,
-        height: badgeHeight,
-      };
-    });
-    
-    setBadgePositions(initialPositions);
-    badgesRef.current = initialPositions;
-  }, []);
-
-  // Physics animation loop
-  const animate = useCallback(() => {
-    if (!containerRef.current || badgesRef.current.length === 0) {
-      animationRef.current = requestAnimationFrame(animate);
-      return;
-    }
-
-    const container = containerRef.current.getBoundingClientRect();
-    const padding = 15;
-    const phoneWidth = 280;
-    const phoneHeight = 580;
-    const centerX = container.width / 2;
-    const centerY = container.height / 2;
-    
-    // Phone exclusion zone
-    const phoneZone = {
-      left: centerX - phoneWidth / 2 - 30,
-      right: centerX + phoneWidth / 2 + 30,
-      top: centerY - phoneHeight / 2 - 20,
-      bottom: centerY + phoneHeight / 2 + 20,
-    };
-
-    const newPositions = badgesRef.current.map((badge, i) => {
-      let { x, y, vx, vy, width, height } = badge;
-      
-      // Update position
-      x += vx;
-      y += vy;
-      
-      // Boundary collision (container edges)
-      if (x <= padding) {
-        x = padding;
-        vx = Math.abs(vx) * 0.9;
-      }
-      if (x >= container.width - width - padding) {
-        x = container.width - width - padding;
-        vx = -Math.abs(vx) * 0.9;
-      }
-      if (y <= padding) {
-        y = padding;
-        vy = Math.abs(vy) * 0.9;
-      }
-      if (y >= container.height - height - padding) {
-        y = container.height - height - padding;
-        vy = -Math.abs(vy) * 0.9;
-      }
-      
-      // Phone exclusion zone collision
-      const badgeCenterX = x + width / 2;
-      const badgeCenterY = y + height / 2;
-      
-      if (badgeCenterX > phoneZone.left && badgeCenterX < phoneZone.right &&
-          badgeCenterY > phoneZone.top && badgeCenterY < phoneZone.bottom) {
-        // Push away from phone center
-        const pushX = badgeCenterX < centerX ? -1 : 1;
-        const pushY = badgeCenterY < centerY ? -1 : 1;
-        vx = pushX * Math.abs(vx) * 1.2;
-        vy = pushY * Math.abs(vy) * 1.2;
-        x += pushX * 5;
-        y += pushY * 5;
-      }
-      
-      // Badge-to-badge collision
-      badgesRef.current.forEach((other, j) => {
-        if (i === j) return;
-        
-        const dx = (x + width / 2) - (other.x + other.width / 2);
-        const dy = (y + height / 2) - (other.y + other.height / 2);
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        const minDistance = (width + other.width) / 2 + 20;
-        
-        if (distance < minDistance && distance > 0) {
-          // Collision detected - bounce apart
-          const angle = Math.atan2(dy, dx);
-          const overlap = minDistance - distance;
-          
-          // Separate badges
-          x += Math.cos(angle) * overlap * 0.5;
-          y += Math.sin(angle) * overlap * 0.5;
-          
-          // Bounce velocity
-          vx += Math.cos(angle) * 0.3;
-          vy += Math.sin(angle) * 0.3;
-        }
-      });
-      
-      // Add slight random drift for organic movement
-      vx += (Math.random() - 0.5) * 0.02;
-      vy += (Math.random() - 0.5) * 0.02;
-      
-      // Damping to prevent runaway speeds
-      const maxSpeed = 1.2;
-      const speed = Math.sqrt(vx * vx + vy * vy);
-      if (speed > maxSpeed) {
-        vx = (vx / speed) * maxSpeed;
-        vy = (vy / speed) * maxSpeed;
-      }
-      
-      // Minimum speed to keep things moving
-      const minSpeed = 0.15;
-      if (speed < minSpeed) {
-        const angle = Math.random() * Math.PI * 2;
-        vx = Math.cos(angle) * minSpeed;
-        vy = Math.sin(angle) * minSpeed;
-      }
-      
-      return { ...badge, x, y, vx, vy };
-    });
-    
-    badgesRef.current = newPositions;
-    setBadgePositions([...newPositions]);
-    
-    animationRef.current = requestAnimationFrame(animate);
-  }, []);
-
   useEffect(() => {
     setIsVisible(true);
-    
-    // Animate scan progress
-    const progressTimer = setInterval(() => {
-      setScanProgress(prev => {
-        if (prev >= 100) return 0;
-        return prev + 1;
-      });
-    }, 50);
-
-    // Cycle through threat checks
-    const threatTimer = setInterval(() => {
-      setCurrentThreat(prev => (prev + 1) % SCAN_STATUS_MESSAGES.length);
-    }, 2000);
-    
-    // Initialize floating badges after a short delay
-    const initTimer = setTimeout(() => {
-      initializeBadges();
-      animationRef.current = requestAnimationFrame(animate);
-    }, 500);
-    
-    // Handle window resize
-    const handleResize = () => {
-      initializeBadges();
-    };
-    window.addEventListener('resize', handleResize);
-    
-    return () => {
-      clearInterval(progressTimer);
-      clearInterval(threatTimer);
-      clearTimeout(initTimer);
-      window.removeEventListener('resize', handleResize);
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-  }, [initializeBadges, animate]);
+  }, []);
 
   const handleScan = () => {
     const input = scanInput.trim();
@@ -388,197 +183,259 @@ const HomePage = () => {
       />
       
       <div className="home-page">
-        {/* Hero Section */}
-        <section className="hero-section">
-        {/* Background Effects */}
-        <div className="hero-bg">
-          <div className="bg-gradient" />
-          <div className="bg-grid" />
-          <div className="bg-glow glow-1" />
-          <div className="bg-glow glow-2" />
-          
-          {/* Red Scanner/Radar Effect */}
-          <div className="radar-scanner">
-            <div className="radar-ring radar-ring-1" />
-            <div className="radar-ring radar-ring-2" />
-            <div className="radar-ring radar-ring-3" />
-            <div className="radar-ring radar-ring-4" />
-            <div className="radar-sweep" />
-            <div className="radar-center" />
-          </div>
-        </div>
-
-        {/* Hero Headline - Moves to top on mobile */}
-        <div className={`hero-headline ${isVisible ? 'visible' : ''}`}>
-          <h1 className="hero-title">
-            Chrome Extension Scanner
-          </h1>
-          <p className="hero-subtitle">
-            Paste Chrome Web Store URL or Extension ID — get a safety report in seconds.
-          </p>
-        </div>
-
-        {/* Feature: hero content (mobile scanner device + floating hover cards) - hidden
-        <div 
-          ref={containerRef}
-          className={`hero-content ${isVisible ? 'visible' : ''}`}
+        {/* Hero Section - Two-column layout with frosted glass scan preview */}
+        <section
+          className="hero-section"
+          aria-label="Chrome Extension Scanner"
         >
-          {badgePositions.map((badge) => (
-            <div
-              key={badge.id}
-              className={`floating-badge physics-badge ${badge.status}`}
-              style={{
-                transform: `translate(${badge.x}px, ${badge.y}px)`,
-              }}
+          {/* Background Effects - cosmic star texture */}
+          <div className="hero-bg">
+            <div className="bg-gradient" />
+            <div className="bg-grid" />
+            <div className="bg-stars" aria-hidden="true" />
+            <div className="bg-glow glow-1" />
+            <div className="bg-glow glow-2" />
+          </div>
+
+          <div className="hero-grid">
+            {/* Left Panel - Headline, Input, CTA */}
+            <motion.div
+              className="hero-left"
+              initial={{ opacity: 0, y: 24 }}
+              animate={isVisible ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             >
-              <span className="badge-icon">{badge.icon}</span>
-              <span className="badge-label">{badge.label}</span>
-              <span className="badge-status">
-                {badge.status === 'detected' ? 'DETECTED' : 'CLEAR'}
-              </span>
-            </div>
-          ))}
-          <div className="scanner-device">
-            <div className="device-frame">
-              <div className="device-notch" />
-              <div className="device-screen">
-                <div className="scanner-header">
-                  <div className="scanner-status">
-                    <span className="status-dot" />
-                    <span>Live Scan</span>
-                  </div>
+              <p className="hero-tagline">Chrome Extension Scanner</p>
+              <h1 className="hero-title">
+                Know what your Chrome extensions can access.
+              </h1>
+              <p className="hero-subtitle">
+                Paste a Chrome Web Store URL or Extension ID — get a safety report in under 60 seconds.
+              </p>
+
+              <div className="hero-search">
+                <div className="search-container">
+                  <span className="search-icon search-icon-chrome" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="chrome-logo">
+                      <path d="M12 12L22 12A10 10 0 0 1 7 3.34L12 12Z" fill="#4285F4" />
+                      <path d="M12 12L7 3.34A10 10 0 0 1 7 20.66L12 12Z" fill="#EA4335" />
+                      <path d="M12 12L7 20.66A10 10 0 0 1 22 12L12 12Z" fill="#FBBC05" />
+                      <circle cx="12" cy="12" r="4" fill="#34A853" />
+                      <circle cx="12" cy="12" r="2.5" fill="white" />
+                    </svg>
+                  </span>
+                  <input
+                    type="text"
+                    id="hero-scan-input"
+                    placeholder="Paste Chrome Web Store URL or Extension ID"
+                    value={scanInput}
+                    onChange={(e) => setScanInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleScan()}
+                    aria-label="Chrome Web Store URL or Extension ID"
+                    autoComplete="url"
+                  />
+                  <motion.button
+                    type="button"
+                    className="search-btn search-btn-icon"
+                    onClick={handleScan}
+                    aria-label="Scan extension"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                      <circle cx="11" cy="11" r="8" />
+                      <path d="M21 21l-4.35-4.35" />
+                    </svg>
+                  </motion.button>
                 </div>
-                <div className="scanner-visual">
-                  <div className="scan-rings">
-                    <div className="ring ring-1" />
-                    <div className="ring ring-2" />
-                    <div className="ring ring-3" />
-                  </div>
-                  <div className="scan-center">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                      <path d="M9 12l2 2 4-4" />
+                <p className="hero-scan-info">
+                  <svg className="hero-scan-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                    <path d="M20 6L9 17l-5-5" />
+                  </svg>
+                  Checks permissions, network access, version history, and known threats.
+                </p>
+                {!isAuthenticated && scanInput.trim() && (
+                  <p className="auth-hint">
+                    Sign in required to scan. View existing reports on{" "}
+                    <a href="/scan" onClick={(e) => { e.preventDefault(); navigate("/scan"); }}>/scan</a>
+                  </p>
+                )}
+                {scanError && <p className="scan-error-hint">{scanError}</p>}
+              </div>
+
+              <a
+                href="https://app.tango.us/app/workflow/Scan-Google-Translate-Extension-with-ExtensionShield-c1e43d157b434aedbaff4176df94d55d"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hero-demo-link"
+                title="Copy extension URL → paste here (step-by-step)"
+              >
+                <span className="hero-demo-icon" aria-hidden>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none" />
+                  </svg>
+                </span>
+                <span>Watch demo</span>
+              </a>
+            </motion.div>
+
+            {/* Right Panel - Frosted glass scan preview card */}
+            <motion.div
+              className="hero-right"
+              initial={{ opacity: 0, x: 24 }}
+              animate={isVisible ? { opacity: 1, x: 0 } : {}}
+              transition={{ duration: 0.6, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <motion.div
+                className="hero-glass-card"
+                initial={{ opacity: 0, y: 20 }}
+                animate={isVisible ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.5, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                whileHover={{ boxShadow: "0 24px 48px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.06)" }}
+                role="complementary"
+                aria-label="Sample scan results preview"
+              >
+                <div className="glass-icon-wrapper">
+                  <div className="glass-card-icon" aria-hidden="true">
+                    {/* Chrome extension puzzle-piece icon (authentic style) */}
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="extension-icon-svg">
+                      <path
+                        fill="#5F6368"
+                        d="M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4c-1.1 0-2 .9-2 2v3.8h1.5c1.5 0 2.7 1.2 2.7 2.7s-1.2 2.7-2.7 2.7H2V20c0 1.1.9 2 2 2h3.8v-1.5c0-1.5 1.2-2.7 2.7-2.7s2.7 1.2 2.7 2.7V22H13v-1.5c0-1.5 1.2-2.7 2.7-2.7 1.5 0 2.7 1.2 2.7 2.7V22H19c1.1 0 2-.9 2-2v-4h1.5c1.5 0 2.7-1.2 2.7-2.7s-1.2-2.7-2.7-2.7z"
+                      />
+                      <circle cx="12" cy="12" r="2.5" fill="#8AB4F8" />
                     </svg>
                   </div>
-                  <div className="scan-line" style={{ transform: `rotate(${scanProgress * 3.6}deg)` }} />
+                  <p className="glass-extension-label">Extension</p>
                 </div>
-                <div className="scanner-status-text">
-                  <span className="status-label">{SCAN_STATUS_MESSAGES[currentThreat]}</span>
-                </div>
-                <div className="scanner-threats">
-                  <div className="threat-row">
-                    <span className="threat-icon safe">✓</span>
-                    <span className="threat-name">Permissions</span>
-                  </div>
-                  <div className="threat-row">
-                    <span className="threat-icon safe">✓</span>
-                    <span className="threat-name">Data Safety</span>
-                  </div>
-                  <div className="threat-row scanning">
-                    <span className="threat-icon">◌</span>
-                    <span className="threat-name">Code Analysis</span>
-                  </div>
-                </div>
-                <div className="scanner-action">
-                  <div className="action-btn">
-                    <span>View Full Report</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        */}
 
-        {/* Hero Actions - Search */}
-        <div className={`hero-actions ${isVisible ? 'visible' : ''}`}>
-          <div className="hero-search">
-            <div className="search-container">
-              <div className="search-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="M21 21l-4.35-4.35" />
-                </svg>
-              </div>
-              <input
-                type="text"
-                placeholder="Paste Chrome Web Store URL or Extension ID"
-                value={scanInput}
-                onChange={(e) => setScanInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleScan()}
-              />
-              <button className="search-btn" onClick={handleScan}>
-                <span>Scan Now</span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M5 12h14M12 5l7 7-7 7" />
-                </svg>
-              </button>
-            </div>
-            {/* Auth hint when not logged in */}
-            {!isAuthenticated && scanInput.trim() && (
-              <p className="auth-hint">
-                Sign in required to scan. View existing reports on <a href="/scan" onClick={(e) => { e.preventDefault(); navigate('/scan'); }}>/scan</a>
-              </p>
-            )}
-            {/* Show scan error message if any */}
-            {scanError && (
-              <p className="scan-error-hint">{scanError}</p>
-            )}
+                <div className="glass-card-rows">
+                  <motion.div
+                    className="glass-row security"
+                    initial={{ opacity: 0 }}
+                    animate={isVisible ? { opacity: 1 } : {}}
+                    transition={{ delay: 0.5, duration: 0.4 }}
+                  >
+                    <div className="glass-row-header">
+                      <svg className="glass-row-icon safe" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                        <path d="M20 6L9 17l-5-5" />
+                      </svg>
+                      <div>
+                        <strong>Security</strong>
+                        <span>No critical issues</span>
+                      </div>
+                    </div>
+                    <div className="glass-progress-bar">
+                      <motion.div className="glass-progress-fill safe" initial={{ width: 0 }} animate={isVisible ? { width: "100%" } : {}} transition={{ delay: 0.7, duration: 0.8, ease: "easeOut" }} />
+                    </div>
+                  </motion.div>
+
+                  <motion.div
+                    className="glass-row privacy"
+                    initial={{ opacity: 0 }}
+                    animate={isVisible ? { opacity: 1 } : {}}
+                    transition={{ delay: 0.6, duration: 0.4 }}
+                  >
+                    <div className="glass-row-header">
+                      <svg className="glass-row-icon warning" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                        <line x1="12" y1="9" x2="12" y2="13" />
+                        <line x1="12" y1="17" x2="12.01" y2="17" />
+                      </svg>
+                      <div>
+                        <strong>Privacy</strong>
+                        <span>Trackers detected</span>
+                      </div>
+                    </div>
+                    <div className="glass-progress-bar">
+                      <motion.div className="glass-progress-fill warning" initial={{ width: 0 }} animate={isVisible ? { width: "65%" } : {}} transition={{ delay: 0.8, duration: 0.8, ease: "easeOut" }} />
+                    </div>
+                  </motion.div>
+
+                  <motion.div
+                    className="glass-row governance"
+                    initial={{ opacity: 0 }}
+                    animate={isVisible ? { opacity: 1 } : {}}
+                    transition={{ delay: 0.7, duration: 0.4 }}
+                  >
+                    <div className="glass-row-header">
+                      <svg className="glass-row-icon safe" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                        <path d="M20 6L9 17l-5-5" />
+                      </svg>
+                      <div>
+                        <strong>Governance</strong>
+                        <span>Standard permissions</span>
+                      </div>
+                    </div>
+                    <div className="glass-progress-bar">
+                      <motion.div className="glass-progress-fill safe" initial={{ width: 0 }} animate={isVisible ? { width: "100%" } : {}} transition={{ delay: 0.9, duration: 0.8, ease: "easeOut" }} />
+                    </div>
+                  </motion.div>
+                </div>
+                <p className="glass-card-meta">
+                  Last analyzed 1min ago.
+                </p>
+              </motion.div>
+            </motion.div>
           </div>
-          <a
-            href="https://app.tango.us/app/workflow/Scan-Google-Translate-Extension-with-ExtensionShield-c1e43d157b434aedbaff4176df94d55d"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hero-demo-link"
-            title="Copy extension URL → paste here (step-by-step)"
+
+          {/* Stats Bar - anchored at bottom */}
+          <motion.div
+            className="stats-bar"
+            initial={{ opacity: 0, y: 20 }}
+            animate={isVisible ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
           >
-            <span className="hero-demo-icon" aria-hidden>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none" />
-              </svg>
-            </span>
-            <span>Watch demo</span>
-          </a>
-        </div>
+            <div className="stat-item">
+              <span className="stat-value beta">
+                <span className="beta-dot" />
+                BETA
+              </span>
+              <span className="stat-label">Free to scan</span>
+            </div>
+            <div className="stat-divider" />
+            <div className="stat-item">
+              <span className="stat-value">47+</span>
+              <span className="stat-label">Security rules</span>
+            </div>
+            <div className="stat-divider" />
+            <div className="stat-item">
+              <span className="stat-value">&lt;&nbsp;60s</span>
+              <span className="stat-label">Scan time</span>
+            </div>
+            <div className="stat-divider" />
+            <div className="stat-item">
+              <span className="stat-value live">
+                {extensionsScannedCount !== null ? (
+                  <>
+                    <span className="live-dot" aria-hidden="true" />
+                    {extensionsScannedCount.toLocaleString()}+
+                  </>
+                ) : (
+                  <span className="stat-value-placeholder">—</span>
+                )}
+              </span>
+              <span className="stat-label">Extensions scanned</span>
+            </div>
+          </motion.div>
 
-        {/* Stats Bar - Separate for flexible positioning */}
-        <div className={`stats-bar ${isVisible ? 'visible' : ''}`}>
-          <div className="stat-item">
-            <span className="stat-value beta">
-              <span className="beta-dot" />
-              BETA
-            </span>
-            <span className="stat-label">Free to scan</span>
-          </div>
-          <div className="stat-divider" />
-          <div className="stat-item">
-            <span className="stat-value">47+</span>
-            <span className="stat-label">Security Rules</span>
-          </div>
-          <div className="stat-divider" />
-          <div className="stat-item">
-            <span className="stat-value">&lt;60s</span>
-            <span className="stat-label">Scan Time</span>
-          </div>
-          <div className="stat-divider" />
-          <div className="stat-item">
-            <span className="stat-value live">
-              <span className="live-dot" />
-              LIVE
-            </span>
-            <span className="stat-label">Threat Intel</span>
-          </div>
-        </div>
-
-        {/* Scroll Cue */}
-        <button className={`scroll-cue ${isVisible ? 'visible' : ''}`} onClick={scrollToProof}>
-          <span>See how extensions can turn risky</span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M12 5v14M5 12l7 7 7-7" />
-          </svg>
-        </button>
-      </section>
+          {/* Scroll Cue */}
+          <motion.button
+            type="button"
+            className="scroll-cue"
+            onClick={scrollToProof}
+            initial={{ opacity: 0 }}
+            animate={isVisible ? { opacity: 1 } : {}}
+            transition={{ delay: 0.8, duration: 0.4 }}
+            aria-label="Scroll to see how extensions can turn risky"
+          >
+            <span>See how extensions can turn risky</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <path d="M12 5v14M5 12l7 7 7-7" />
+            </svg>
+          </motion.button>
+        </section>
 
       {/* Bridge Section - How trusted extensions turn risky */}
       <section 

@@ -545,8 +545,11 @@ const HomePage = () => {
         {/* Stats Bar - Separate for flexible positioning */}
         <div className={`stats-bar ${isVisible ? 'visible' : ''}`}>
           <div className="stat-item">
-            <span className="stat-value">Free</span>
-            <span className="stat-label">For Individuals</span>
+            <span className="stat-value beta">
+              <span className="beta-dot" />
+              BETA
+            </span>
+            <span className="stat-label">Free to scan</span>
           </div>
           <div className="stat-divider" />
           <div className="stat-item">

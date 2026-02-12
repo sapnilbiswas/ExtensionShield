@@ -858,9 +858,17 @@
     gap: 0.5rem;
     color: var(--atlas-accent);
   }
+
+  &.beta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--atlas-accent);
+  }
 }
 
-.live-dot {
+.live-dot,
+.beta-dot {
   width: 8px;
   height: 8px;
   background: var(--atlas-accent);

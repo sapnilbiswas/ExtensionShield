@@ -47,6 +47,8 @@ make api                        # Terminal 1: API at http://localhost:8007
 make frontend                   # Terminal 2: UI at http://localhost:5173
 ```
 
+**Port 8007 vs 5173**: With only `make api`, port 8007 serves the API; the browser will show a short message and a link to the app. **Use http://localhost:5173** (after `make frontend`) to use the app with hot-reload and see the latest frontend changes. To serve the full app from port 8007 (production-like), run `make build-and-serve` once to build the frontend into `static/`, then the API will serve it.
+
 **Note**: If you see `placeholder.supabase.co` errors when trying to log in, you need to configure the frontend environment variables. See [Frontend Configuration](#frontend-configuration) below.
 
 ---

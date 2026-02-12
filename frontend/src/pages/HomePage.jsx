@@ -645,7 +645,7 @@ const HomePage = () => {
         className={`deception-section reveal-section ${revealedSections['deception'] ? 'revealed' : ''}`}
       >
         <div className="deception-container">
-          <p className="deception-disclaimer">Real Chrome Web Store listings</p>
+          <p className="deception-disclaimer">Examples from the Chrome Web Store</p>
           
           <div className="deception-carousel-wrapper">
             <button
@@ -692,7 +692,7 @@ const HomePage = () => {
                       <svg viewBox="0 0 24 24" fill="currentColor">
                         <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      <span>Badge: {ext.badge}</span>
+                      <span>Store badge: {ext.badge}</span>
                     </div>
                   </div>
                 </div>
@@ -711,9 +711,10 @@ const HomePage = () => {
             </button>
           </div>
 
-          <p className="deception-footer">
-            These all passed store review. Store approval is not a guarantee of safety.
-          </p>
+          <div className="deception-footer-block">
+            <p className="deception-footer">Approved store listings aren't a guarantee of safety.</p>
+            <p className="deception-footer">Ratings and installs can change over time.</p>
+          </div>
         </div>
       </section>
 

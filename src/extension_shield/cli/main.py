@@ -456,8 +456,6 @@ def serve(host: str, port: int, reload: bool):
     """
     import uvicorn
 
-    # from extension_shield.api.main import app  # Unused import
-
     console.print(
         Panel.fit(
             f"[bold cyan]Starting ExtensionShield API Server[/bold cyan]\n"

@@ -22,6 +22,7 @@ dependencies = [
     "fastmcp>=1.0",
     "slowapi>=0.1.9",
     "uvicorn>=0.32.0",
+    "sentry-sdk>=2.0.0",
     "vt-py>=0.18.0",
     "reportlab>=4.0.0",
     # Optional (only used if SUPABASE_URL + SUPABASE_*_KEY are set)

@@ -55,8 +55,10 @@ export const AuthProvider = ({ children }) => {
       if (supabaseUrl) {
         const { data } = supabase.auth.onAuthStateChange((event, nextSession) => {
           if (!isMounted) return;
-          
-          logger.log("Auth state changed:", event, nextSession ? "has session" : "no session");
+          // Only log meaningful auth changes (skip noisy INITIAL_SESSION when no session)
+          if (event !== "INITIAL_SESSION" || nextSession) {
+            logger.log("Auth state changed:", event, nextSession ? "has session" : "no session");
+          }
           
           setSession(nextSession || null);
           setUser(toUiUser(nextSession?.user));

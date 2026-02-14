@@ -429,11 +429,6 @@ const ScanHistoryPage = () => {
         <div className="history-header">
           <h1>Scan History</h1>
           <p>Browse and search all scanned extensions</p>
-          {!isAuthenticated && (
-            <p className="auth-hint" style={{ marginTop: '0.5rem', fontSize: '0.875rem', opacity: 0.8 }}>
-              Showing 10 most recent scans. <button onClick={openSignInModal} style={{ background: 'none', border: 'none', color: 'hsl(var(--color-info))', cursor: 'pointer', textDecoration: 'underline', padding: 0, fontSize: 'inherit' }}>Sign in</button> to scan new extensions (limit: 2 scans/day).
-            </p>
-          )}
         </div>
 
         {/* Toolbar */}
@@ -746,7 +741,9 @@ const ScanHistoryPage = () => {
 
         {/* Login Overlay for Blurred Content */}
         {isPublicView && !loading && filteredScans.length > 0 && (
-          <div className="login-overlay">
+          <>
+            <div className="login-overlay-backdrop" aria-hidden />
+            <div className="login-overlay">
             <div className="login-overlay-content">
               <svg className="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
@@ -758,6 +755,7 @@ const ScanHistoryPage = () => {
               </button>
             </div>
           </div>
+          </>
         )}
       </div>
       </div>

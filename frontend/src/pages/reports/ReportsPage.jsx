@@ -5,24 +5,30 @@ import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import databaseService from "../../services/databaseService";
+import { useAuth } from "../../context/AuthContext";
 import "./ReportsPage.scss";
 
 const ReportsPage = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, accessToken } = useAuth();
   const [reports, setReports] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     loadReports();
-  }, []);
+  }, [isAuthenticated, accessToken]);
 
   const loadReports = async () => {
     try {
       setIsLoading(true);
-      const history = await databaseService.getScanHistory(50);
+      if (!isAuthenticated) {
+        setReports([]);
+        return;
+      }
+      const history = await databaseService.getScanHistory(50, accessToken);
       setReports(history);
     } catch (error) {
-      // console.error("Failed to load reports:", error); // prod: no console
+      setReports([]);
     } finally {
       setIsLoading(false);
     }

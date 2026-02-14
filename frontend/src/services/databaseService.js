@@ -202,10 +202,11 @@ class DatabaseService {
   }
 
   /**
-   * Get URLs from recent scans for autocomplete
+   * Get URLs from recent scans for autocomplete (requires auth; no request when unauthenticated)
    */
   async getRecentUrls(limit = 5) {
-    const history = await this.getScanHistory(limit);
+    if (!this.accessToken) return [];
+    const history = await this.getScanHistory(limit, this.accessToken);
     return history
       .map(item => item.url)
       .filter(url => url && url.trim() !== "");
@@ -220,11 +221,11 @@ class DatabaseService {
   }
 
   /**
-   * Get aggregated metrics for dashboard widgets
+   * Get aggregated metrics for dashboard widgets (history only when authenticated to avoid 401)
    */
   async getDashboardMetrics() {
     const stats = await this.getStatistics();
-    const history = await this.getScanHistory(20);
+    const history = this.accessToken ? await this.getScanHistory(20, this.accessToken) : [];
 
     // Get last 7 scans for sparkline (most recent first, then reverse for chronological order)
     const recentScans = history.slice(0, 7).reverse();

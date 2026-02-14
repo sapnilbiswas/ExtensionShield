@@ -256,6 +256,21 @@
   user-select: none;
 }
 
+/* Full-page mask: dims background and focuses attention on the modal */
+.login-overlay-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  animation: fadeInBackdrop 0.3s ease;
+}
+
+@keyframes fadeInBackdrop {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 .login-overlay {
   position: fixed;
   top: 50%;

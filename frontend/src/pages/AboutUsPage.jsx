@@ -52,34 +52,24 @@ const AboutUsPage = () => {
                 "Hi, can I have your browsing history, clipboard, and maybe custody of your first-born child?"
               </p>
               <p>
-                One day I installed an extension that looked totally normal… until I noticed the permissions didn't match what it claimed to do. So I went looking for a simple answer:
+                December 2025—right near the start of the year—I installed an extension that looked totally normal. Until I actually looked at the permissions. They didn't match what it claimed to do. So I went looking for a simple answer:
               </p>
               <p>
                 <strong>Is this extension actually safe?</strong>
               </p>
               <p>
-                What I found were tools that were either too technical, too vague, or confidently wrong (the internet special). I couldn't find something that combined security analysis + privacy risk + compliance into a clear verdict you can actually act on.
+                What I found were tools that were either too technical, too vague, or confidently wrong (the internet special). I couldn't find something that combined security analysis, privacy risk, and compliance into a clear verdict you can actually act on.
               </p>
               <p>
-                So I built ExtensionShield.
+                The thing is, building a weighted scoring model for extensions isn't easy. It takes in a lot of factors. Blindly rating them down is bad—real developers and businesses get hurt. But we've got to protect consumers too. So much data is being stolen every day. I wanted something that could be fair to both sides and still give people a verdict they could trust.
               </p>
             </div>
 
             <div className="story-section">
               <h2>Background</h2>
               <p>
-                I got my start in open source through Google Summer of Code, then joined the Drupal (<a href="https://www.drupal.org/u/stanzin" target="_blank" rel="noopener noreferrer">drupal.org/u/stanzin</a>) community. That's where I learned transparency, community review, and "show your work"—plus the occasional spicy-but-correct code review that makes you better.
+                I got my start in open source (Google Summer of Code, Drupal), then worked on enterprise systems at Hanover Insurance—where security, privacy, and compliance aren't optional. That's how ExtensionShield ended up practical: less vibes, more evidence.
               </p>
-              <p>
-                Later, I worked on enterprise systems at Hanover Insurance, where security, privacy, and compliance aren't optional—they're the job. That experience helped me turn ExtensionShield into something practical: less vibes, more evidence.
-              </p>
-              <p>
-                Today I'm continuously expanding an extensive ruleset to catch real-world risks—and sharing the methodology (and parts of the engine) so you can see how the verdict is made.
-              </p>
-            </div>
-
-            <div className="video-placeholder">
-              <p className="video-note">📹 Video coming soon</p>
             </div>
           </div>
 

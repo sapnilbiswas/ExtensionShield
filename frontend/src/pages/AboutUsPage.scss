@@ -210,22 +210,6 @@
     }
   }
   
-  .video-placeholder {
-    text-align: center;
-    margin-top: 3rem;
-    padding: 2rem;
-    background: rgba(13, 20, 36, 0.4);
-    border: 1px dashed rgba(148, 163, 184, 0.2);
-    border-radius: 12px;
-    
-    .video-note {
-      font-size: 1rem;
-      color: var(--atlas-text-secondary, #94a3b8);
-      margin: 0;
-      font-style: italic;
-    }
-  }
-  
   .experience-section {
     .company-logos {
       display: flex;

@@ -8,16 +8,17 @@ import SEOHead from "../components/SEOHead";
 import { HeroOrbitalCarousel } from "../components/hero";
 import "./HomePage.scss";
 
-// Real extension listings (Chrome Web Store style)
+// Real extension listings (Chrome Web Store style). logoUrl set to null to avoid
+// failed requests to external logo APIs (e.g. Clearbit) which cause ERR_NAME_NOT_RESOLVED in console.
 const EXTENSION_CARDS = [
-  { id: "session-buddy", name: "Session Buddy – Tab & Bookmark Manager", stars: "★★★★★", rating: "4.7", users: "1,000,000 users", badge: "Featured", iconClass: "tabs", logoUrl: "https://logo.clearbit.com/sessionbuddy.com", iconSvg: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M9 21V9" /></svg> },
+  { id: "session-buddy", name: "Session Buddy – Tab & Bookmark Manager", stars: "★★★★★", rating: "4.7", users: "1,000,000 users", badge: "Featured", iconClass: "tabs", logoUrl: null, iconSvg: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M9 21V9" /></svg> },
   { id: "hover-zoom", name: "Hover Zoom+", stars: "★★★★★", rating: "4.0", users: "300,000 users", badge: "Featured", iconClass: "zoom", logoUrl: null, iconSvg: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg> },
-  { id: "stylus", name: "Stylus", stars: "★★★★★", rating: "4.5", users: "900,000 users", badge: "Featured", iconClass: "stylus", logoUrl: "https://logo.clearbit.com/github.com", iconSvg: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /></svg> },
-  { id: "adblock", name: "Adblock Plus – free ad blocker", stars: "★★★★★", rating: "4.4", users: "41,000,000 users", badge: "Featured", iconClass: "shield", logoUrl: "https://logo.clearbit.com/adblockplus.org", iconSvg: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg> },
-  { id: "honey", name: "PayPal Honey: Automated Coupons & Cash Back", stars: "★★★★★", rating: "4.6", users: "14,000,000 users", badge: "Featured", iconClass: "honey", logoUrl: "https://logo.clearbit.com/joinhoney.com", iconSvg: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2L20 7v10l-8 5-8-5V7l8-5z" /><path d="M12 8v8M10 11h4" /></svg> },
-  { id: "grammarly", name: "Grammarly: AI Writing Assistant and Grammar Checker App", stars: "★★★★★", rating: "4.5", users: "43,000,000 users", badge: "Featured", iconClass: "grammarly", logoUrl: "https://logo.clearbit.com/grammarly.com", iconSvg: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6" /><path d="M10 9h4M10 13h4M10 17h2" /></svg> },
-  { id: "hola", name: "Hola VPN – Your Website Unblocker", stars: "★★★★★", rating: "4.8", users: "5,000,000 users", badge: "Store listing", iconClass: "vpn", logoUrl: "https://logo.clearbit.com/hola.org", iconSvg: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10" /><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg> },
-  { id: "vdh", name: "Video DownloadHelper", stars: "★★★★★", rating: "4.4", users: "5,000,000 users", badge: "Featured", iconClass: "download", logoUrl: "https://logo.clearbit.com/videodownloadhelper.net", iconSvg: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polygon points="5 3 19 12 5 21 5 3" /><line x1="19" y1="5" x2="19" y2="19" /></svg> },
+  { id: "stylus", name: "Stylus", stars: "★★★★★", rating: "4.5", users: "900,000 users", badge: "Featured", iconClass: "stylus", logoUrl: null, iconSvg: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /></svg> },
+  { id: "adblock", name: "Adblock Plus – free ad blocker", stars: "★★★★★", rating: "4.4", users: "41,000,000 users", badge: "Featured", iconClass: "shield", logoUrl: null, iconSvg: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg> },
+  { id: "honey", name: "PayPal Honey: Automated Coupons & Cash Back", stars: "★★★★★", rating: "4.6", users: "14,000,000 users", badge: "Featured", iconClass: "honey", logoUrl: null, iconSvg: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2L20 7v10l-8 5-8-5V7l8-5z" /><path d="M12 8v8M10 11h4" /></svg> },
+  { id: "grammarly", name: "Grammarly: AI Writing Assistant and Grammar Checker App", stars: "★★★★★", rating: "4.5", users: "43,000,000 users", badge: "Featured", iconClass: "grammarly", logoUrl: null, iconSvg: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6" /><path d="M10 9h4M10 13h4M10 17h2" /></svg> },
+  { id: "hola", name: "Hola VPN – Your Website Unblocker", stars: "★★★★★", rating: "4.8", users: "5,000,000 users", badge: "Store listing", iconClass: "vpn", logoUrl: null, iconSvg: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10" /><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg> },
+  { id: "vdh", name: "Video DownloadHelper", stars: "★★★★★", rating: "4.4", users: "5,000,000 users", badge: "Featured", iconClass: "download", logoUrl: null, iconSvg: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polygon points="5 3 19 12 5 21 5 3" /><line x1="19" y1="5" x2="19" y2="19" /></svg> },
 ];
 
 const HomePage = () => {
@@ -314,12 +315,6 @@ const HomePage = () => {
                   </svg>
                   Checks permissions, network access, version history, and known threats.
                 </p>
-                {!isAuthenticated && scanInput.trim() && (
-                  <p className="auth-hint">
-                    Sign in required to scan. View existing reports on{" "}
-                    <a href="/scan" onClick={(e) => { e.preventDefault(); navigate("/scan"); }}>/scan</a>
-                  </p>
-                )}
                 {scanError && <p className="scan-error-hint">{scanError}</p>}
               </div>
 

@@ -469,24 +469,6 @@
   font-weight: 500;
 }
 
-/* Auth hint for unauthenticated users */
-.auth-hint {
-  margin-top: 0.75rem;
-  font-size: 0.8125rem;
-  color: var(--atlas-text-muted);
-  text-align: center;
-  
-  a {
-    color: var(--atlas-accent);
-    text-decoration: underline;
-    cursor: pointer;
-    
-    &:hover {
-      color: #16a34a;
-    }
-  }
-}
-
 /* Scan error hint */
 .scan-error-hint {
   margin-top: 0.75rem;

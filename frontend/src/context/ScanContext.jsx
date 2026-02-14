@@ -18,7 +18,7 @@ export const useScan = () => {
 
 export const ScanProvider = ({ children }) => {
   const navigate = useNavigate();
-  const { isAuthenticated, openSignInModal } = useAuth();
+  const { isAuthenticated, accessToken, openSignInModal } = useAuth();
 
   // Mount guard — prevents setState on unmounted component during long async flows
   const mountedRef = useRef(true);
@@ -56,18 +56,21 @@ export const ScanProvider = ({ children }) => {
     }
   }, []);
 
-  // Load scan history
+  // Load scan history (only when authenticated to avoid 401 in console)
   const loadScanHistory = useCallback(async () => {
-    try {
-      const history = await databaseService.getScanHistory(50);
-      setScanHistory(history);
-      return history;
-    } catch (err) {
-      // console.error("Error loading scan history:", err); // prod: no console
+    if (!isAuthenticated) {
       setScanHistory([]);
       return [];
     }
-  }, []);
+    try {
+      const history = await databaseService.getScanHistory(50, accessToken);
+      setScanHistory(history);
+      return history;
+    } catch (err) {
+      setScanHistory([]);
+      return [];
+    }
+  }, [isAuthenticated, accessToken]);
 
   // Extract extension ID from URL
   const extractExtensionId = useCallback((url) => {

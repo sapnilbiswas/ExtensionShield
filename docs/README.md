@@ -65,6 +65,12 @@ This directory contains comprehensive documentation for the ExtensionShield proj
   - Testing and verification steps
   - Comparison with OpenAI setup (why WatsonX needs extra steps)
 
+### Development & CI
+
+- **[pre-push-checks.md](./pre-push-checks.md)** – Pre-push and CI checks
+  - Run `npm run ci:check` in `frontend/` to match Security Audit + SEO Smoke Test
+  - Commands for build, audit, and SEO tests
+
 ### Database & API
 
 - **[DATABASE_README.md](./DATABASE_README.md)** - Database schema, SQLite ↔ Postgres mapping, API routes

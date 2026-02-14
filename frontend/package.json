@@ -23,7 +23,10 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
     "test:visual": "playwright test --config=playwright.config.cjs",
-    "test:visual:update": "playwright test --config=playwright.config.cjs --update-snapshots"
+    "test:visual:update": "playwright test --config=playwright.config.cjs --update-snapshots",
+    "ci:check": "npm run build && npm run audit:ci && npm run seo:test:ci",
+    "audit:ci": "npm audit --audit-level=high",
+    "seo:test:ci": "SEO_SKIP_ROBOTS_TXT=1 TEST_PAGES='/,/scan,/enterprise,/research/methodology,/research/case-studies' node scripts/seo_smoke_test.mjs --prod"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",

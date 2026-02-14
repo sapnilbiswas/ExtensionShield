@@ -380,7 +380,6 @@ const ScanResultsPageV2 = () => {
             </div>
           </div>
         </div>
-      </div>
       </>
     );
   }

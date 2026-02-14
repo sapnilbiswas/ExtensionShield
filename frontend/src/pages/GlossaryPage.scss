@@ -39,6 +39,9 @@
     margin: 0 auto;
     position: relative;
     z-index: 1;
+    min-height: 50vh;
+    visibility: visible;
+    opacity: 1;
   }
   
   .glossary-header {

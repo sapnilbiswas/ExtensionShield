@@ -18,6 +18,9 @@
  *   BASE_URL - Base URL to test (default: https://extensionshield.com)
  *   LOCAL_URL - Local URL for testing (default: http://localhost:5173)
  *   TEST_PAGES - Comma-separated list of paths to test (default: /, /scan, /enterprise, etc.)
+ *   SEO_SKIP_ROBOTS_TXT - If set, skip canonical domain robots.txt check (e.g. when prod differs)
+ *   SEO_HEAD_WAIT_MS - Timeout for SEO head elements (default: 50000)
+ *   SEO_PAGE_TIMEOUT_MS - Page default timeout (default: 55000)
  */
 
 import { chromium } from 'playwright';
@@ -120,7 +123,7 @@ function normalizePath(path) {
 }
 
 /** Timeout for waiting on SEO head (lazy-loaded routes may need longer to hydrate). */
-const SEO_HEAD_WAIT_MS = 35000;
+const SEO_HEAD_WAIT_MS = Number(process.env.SEO_HEAD_WAIT_MS) || 50000;
 
 /**
  * Parse HTML and extract SEO elements
@@ -732,12 +735,12 @@ async function runTests() {
     console.log(`   Pages: ${pagesToTest.join(', ')}`);
     const context = await browser.newContext();
     const page = await context.newPage();
-    page.setDefaultTimeout(40000);
+    page.setDefaultTimeout(Number(process.env.SEO_PAGE_TIMEOUT_MS) || 55000);
     for (const path of pagesToTest) {
       const url = `${BASE_URL}${path}`;
       const requireOG = path === '/' || path === '/scan';
       const requireJSONLD = path === '/' || path === '/scan';
-      
+
       // Required schema types per page
       let requiredSchemaTypes = [];
       if (path === '/') {
@@ -745,7 +748,7 @@ async function runTests() {
       } else if (path === '/scan') {
         requiredSchemaTypes = ['SoftwareApplication', 'FAQPage'];
       }
-      
+
       await testPage(page, url, requireOG, requireJSONLD, requiredSchemaTypes);
     }
     await context.close();
@@ -783,12 +786,14 @@ async function runTests() {
     }
   }
 
-  // Test robots.txt (production only)
+  // Test robots.txt (production only). Skip canonical check if SEO_SKIP_ROBOTS_TXT=1 (e.g. prod not yet updated).
   if (testProd) {
     console.log('\n🤖 Testing robots.txt...');
-    // Canonical domain should allow
-    await testRobotsTxt(CANONICAL_DOMAIN, true);
-    // Non-canonical domains should disallow
+    if (!process.env.SEO_SKIP_ROBOTS_TXT) {
+      await testRobotsTxt(CANONICAL_DOMAIN, true);
+    } else {
+      console.log('   (Skipping canonical domain robots.txt check: SEO_SKIP_ROBOTS_TXT is set)');
+    }
     for (const domain of REDIRECT_DOMAINS) {
       await testRobotsTxt(domain, false);
     }

@@ -1,5 +1,6 @@
 import React from "react";
 import { Navigate, useParams } from "react-router-dom";
+import GlossaryPage from "../pages/GlossaryPage";
 
 // Lazy load pages for better code splitting
 const HomePage = React.lazy(() => import("../pages/HomePage"));
@@ -304,7 +305,7 @@ export const routes = [
   },
   {
     path: "/glossary",
-    element: React.lazy(() => import("../pages/GlossaryPage")),
+    element: <GlossaryPage />,
     seo: {
       title: "Browser Extension Security Glossary | ExtensionShield",
       description: "Learn extension security terms: permissions, MV3, service workers, risk scores, governance, SAST, threat intelligence, privacy signals, and compliance.",

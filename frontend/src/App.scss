@@ -25,6 +25,8 @@
   --atlas-border: rgba(148, 163, 184, 0.12);
   --atlas-border-accent: rgba(34, 197, 94, 0.3);
   --atlas-header-height: 72px;
+  /* Total offset (1rem top padding + header height) for content clearance */
+  --atlas-header-offset: calc(var(--atlas-header-height) + 1rem);
 }
 
 /* ============================================================================
@@ -89,72 +91,58 @@ body {
 }
 
 /* ============================================================================
-   HEADER - transparent / subtle glass to blend with AppBackground (no seam)
+   HEADER - Clarity-style: transparent initially, pill+glass on scroll
    ============================================================================ */
 .atlas-header {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  z-index: 1000;
-  height: var(--atlas-header-height);
-  background-color: transparent;
-  border-bottom: 1px solid transparent;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  box-shadow: none;
-  transition:
-    background-color 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-    border-color 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-    box-shadow 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-    backdrop-filter 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  z-index: 1100;
+  padding-top: 1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  min-height: calc(var(--atlas-header-height) + 1rem);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  background: transparent;
+  pointer-events: none; /* allow clicks through to content below padding */
+
+  > * {
+    pointer-events: auto; /* restore clicks on header content */
+  }
 
   &.transparent {
-    background-color: transparent;
-    border-bottom-color: transparent;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    box-shadow: none;
+    /* Outer wrapper stays transparent; inner container handles state */
   }
 
-  /* On scroll: very subtle glass (same underlying background, no seam) */
   &.solid {
-    background-color: rgba(13, 20, 36, 0.04);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-bottom-color: rgba(148, 163, 184, 0.06);
-    box-shadow: none;
+    /* Inner .header-container (motion.div) handles glass/pill via JS animation */
   }
 }
 
-.light .atlas-header {
-  &.solid {
-    background: rgba(255, 255, 255, 0.95);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  }
-}
+/* Light mode solid state handled via motion variants in App.jsx */
 
 .light .action-signin {
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(59, 130, 246, 0.1));
-  border-color: rgba(34, 197, 94, 0.3);
   color: hsl(var(--color-foreground));
-  box-shadow: 0 2px 12px rgba(34, 197, 94, 0.1);
+  border-color: rgba(0, 0, 0, 0.12);
 
   &:hover {
-    background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(59, 130, 246, 0.2));
-    border-color: rgba(34, 197, 94, 0.5);
-    box-shadow: 0 4px 20px rgba(34, 197, 94, 0.2);
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.2);
   }
 }
 
 .header-container {
-  max-width: 1400px;
-  height: 100%;
-  margin: 0 auto;
+  width: 100%;
+  max-width: 1600px;
+  height: var(--atlas-header-height);
   padding: 0 2rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  /* Motion handles maxWidth, margin, background, border, shadow, borderRadius when solid */
 }
 
 /* Logo */
@@ -511,66 +499,22 @@ body {
 }
 
 .action-signin {
-  padding: 0.625rem 1.5rem;
+  padding: 0.5rem 1.25rem;
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--atlas-text-primary);
   text-decoration: none;
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(59, 130, 246, 0.15));
-  border: 1.5px solid rgba(34, 197, 94, 0.4);
-  border-radius: 10px;
+  background: transparent;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
   font-family: inherit;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 2px 12px rgba(34, 197, 94, 0.15);
-  animation: signInPulse 2s ease-in-out infinite;
-
-  /* Shimmer effect */
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.2),
-      transparent
-    );
-    transition: left 0.5s ease;
-  }
 
   &:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(148, 163, 184, 0.4);
     color: var(--atlas-text-primary);
-    background: linear-gradient(135deg, rgba(34, 197, 94, 0.25), rgba(59, 130, 246, 0.25));
-    border-color: rgba(34, 197, 94, 0.6);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(34, 197, 94, 0.3);
-    animation: none;
-
-    &::before {
-      left: 100%;
-    }
-  }
-
-  &:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 12px rgba(34, 197, 94, 0.2);
-  }
-}
-
-@keyframes signInPulse {
-  0%, 100% {
-    box-shadow: 0 2px 12px rgba(34, 197, 94, 0.15),
-                0 0 0 0 rgba(34, 197, 94, 0.4);
-  }
-  50% {
-    box-shadow: 0 2px 12px rgba(34, 197, 94, 0.25),
-                0 0 0 4px rgba(34, 197, 94, 0);
   }
 }
 
@@ -872,7 +816,7 @@ body {
 
 /* For pages that need padding from header */
 .atlas-main > div:not(.home-page) {
-  padding-top: var(--atlas-header-height);
+  padding-top: var(--atlas-header-offset);
 }
 
 /* ============================================================================
@@ -880,7 +824,7 @@ body {
    ============================================================================ */
 .page-container {
   width: 100%;
-  max-width: 1400px;
+  max-width: 1600px;
   margin: 0 auto;
   padding: 96px 64px !important;
   animation: pageEnter 0.4s ease-out;
@@ -1003,7 +947,7 @@ body {
 
 .mobile-menu {
   position: fixed;
-  top: var(--atlas-header-height);
+  top: var(--atlas-header-offset);
   left: 0;
   right: 0;
   bottom: 0;
@@ -1013,7 +957,7 @@ body {
   border-top: 1px solid var(--atlas-border);
   padding: 1.5rem 1rem 2rem;
   overflow-y: auto;
-  z-index: 1100; /* above header (1000) when portaled to body — works on all routes */
+  z-index: 1200; /* above header (1100) when portaled to body — works on all routes */
   transform: translateX(100%);
   opacity: 0;
   visibility: hidden;
@@ -1174,7 +1118,7 @@ body {
   }
 
   .mobile-menu {
-    top: var(--atlas-header-height);
+    top: var(--atlas-header-offset);
     padding: 1rem 0.75rem 1.5rem;
   }
 

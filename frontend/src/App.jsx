@@ -1,7 +1,9 @@
 import React, { Suspense } from "react";
 import { createPortal } from "react-dom";
+import { motion } from "framer-motion";
 import { BrowserRouter as Router, Routes, Route, NavLink, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { useTheme } from "./context/ThemeContext";
 import { ScanProvider } from "./context/ScanContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import routes from "./routes/routes";
@@ -390,14 +392,16 @@ function MainMegamenu() {
   );
 }
 
-// Scroll threshold (px) after which homepage header becomes solid
-const HEADER_SCROLL_THRESHOLD = 40;
+// Scroll threshold (px) after which homepage header transitions to solid pill
+const HEADER_SCROLL_THRESHOLD = 100;
 
 // App Header Component
 function AppHeader() {
   const location = useLocation();
+  const { theme } = useTheme();
   const { user, isAuthenticated, openSignInModal, isLoading } = useAuth();
   const isHomePage = location.pathname === "/";
+  const isLight = theme === "light";
   const [scrolled, setScrolled] = React.useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const mobileMenuRef = React.useRef(null);
@@ -433,6 +437,31 @@ function AppHeader() {
   const headerSolid = !isHomePage || scrolled;
   const headerClass = headerSolid ? "solid" : "transparent";
 
+  const containerVariants = {
+    transparent: {
+      borderRadius: 0,
+      maxWidth: "1600px",
+      margin: "0 auto",
+      background: "transparent",
+      backdropFilter: "none",
+      WebkitBackdropFilter: "none",
+      boxShadow: "none",
+      border: "1px solid transparent",
+    },
+    solid: {
+      borderRadius: 9999,
+      maxWidth: "1600px",
+      margin: "0 auto",
+      background: isLight ? "rgba(255, 255, 255, 0.94)" : "transparent",
+      backdropFilter: "blur(24px)",
+      WebkitBackdropFilter: "blur(24px)",
+      boxShadow: isLight
+        ? "0 4px 24px rgba(0, 0, 0, 0.1), 0 0 1px rgba(0, 0, 0, 0.05)"
+        : "0 0 24px rgba(34, 197, 94, 0.08), 0 4px 24px rgba(0, 0, 0, 0.25)",
+      border: isLight ? "1px solid rgba(0, 0, 0, 0.06)" : "1px solid rgba(34, 197, 94, 0.12)",
+    },
+  };
+
   const allNavLinks = [
     ...topNavItems.flatMap((item) =>
       item.dropdownItems
@@ -444,7 +473,17 @@ function AppHeader() {
 
   return (
     <header className={`atlas-header ${headerClass}`}>
-      <div className="header-container">
+      <motion.div
+        className="header-container"
+        animate={headerSolid ? "solid" : "transparent"}
+        variants={containerVariants}
+        transition={{
+          type: "spring",
+          stiffness: 260,
+          damping: 30,
+          mass: 0.8,
+        }}
+      >
         <NavLink to="/" className="header-logo" onClick={() => setMobileMenuOpen(false)}>
           <div className="header-logo-shield" aria-hidden="true">
             <ShieldLogo size={48} />
@@ -486,7 +525,7 @@ function AppHeader() {
           <span className="hamburger-bar" />
           <span className="hamburger-bar" />
         </button>
-      </div>
+      </motion.div>
 
       {createPortal(
         <div

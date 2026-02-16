@@ -253,10 +253,10 @@ const ScannerPage = () => {
     }
   }, []);
 
-  // Load on mount
+  // Load on mount and when navigating back to /scan (e.g., after completing a scan)
   useEffect(() => {
     loadScans(true);
-  }, [loadScans]);
+  }, [loadScans, location.pathname]);
 
   // Live update: refetch when user returns to this tab or navigates back to /scan
   useEffect(() => {
@@ -267,9 +267,9 @@ const ScannerPage = () => {
     return () => document.removeEventListener("visibilitychange", onVisibilityChange);
   }, [loadScans]);
 
-  // Live update: poll every 20s so new scans appear shortly after completion
+  // Live update: poll every 10s so new scans appear shortly after completion (reduced from 20s)
   useEffect(() => {
-    const interval = setInterval(() => loadScans(false), 20000);
+    const interval = setInterval(() => loadScans(false), 10000);
     return () => clearInterval(interval);
   }, [loadScans]);
 

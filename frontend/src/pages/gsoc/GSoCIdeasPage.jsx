@@ -6,73 +6,55 @@ import "./GSoCIdeasPage.scss";
 const GSoCIdeasPage = () => {
   const ideas = [
     {
-      id: "ml-detection",
-      title: "ML-Based Malicious Extension Detection",
+      id: "scoring-engine",
+      title: "Scoring Engine Enhancement",
       difficulty: "Hard",
-      skills: ["Python", "Machine Learning", "TensorFlow/PyTorch"],
-      mentor: "TBD",
-      description: "Build a machine learning model that classifies extensions based on code patterns, permission usage, and behavioral signals. Train on labeled dataset of known malicious vs benign extensions.",
+      skills: ["Python", "FastAPI", "Data Analysis"],
+      description: "Improve our risk scoring pipeline that analyzes extensions for security, privacy, and governance signals. Help make automated risk detection more accurate by incorporating community feedback signals into the scoring algorithm.",
       goals: [
-        "Create labeled dataset from historical scan results",
-        "Train classification model with >90% accuracy",
-        "Integrate model into ExtensionShield scoring pipeline",
-        "Build evaluation dashboard for model performance"
+        "Analyze current scoring weights and identify improvement areas",
+        "Integrate community report data as scoring input signals",
+        "Build A/B testing framework to measure scoring accuracy",
+        "Create scoring calibration dashboard with real-world metrics"
       ]
     },
     {
-      id: "browser-support",
-      title: "Firefox & Edge Extension Support",
+      id: "community-feedback",
+      title: "Community Reporting & Review System",
       difficulty: "Medium",
-      skills: ["JavaScript", "WebExtensions API", "Node.js"],
-      mentor: "TBD",
-      description: "Extend ExtensionShield to analyze Firefox add-ons and Edge extensions. Handle format differences, different permission models, and store-specific metadata.",
+      skills: ["React", "Node.js", "PostgreSQL"],
+      description: "Build the community feedback layer that lets users report risky behavior, review extensions, and recommend safe alternatives. This creates a feedback loop where real-world reports improve our automated detection over time.",
       goals: [
-        "Add Firefox add-on download and extraction",
-        "Map Firefox permission model to common schema",
-        "Support Edge extension analysis",
-        "Create unified report format across browsers"
+        "Design and implement structured issue reporting flow",
+        "Build review and recommendation submission system",
+        "Create moderation queue for community submissions",
+        "Connect feedback signals to scoring engine pipeline"
       ]
     },
     {
-      id: "real-time-monitoring",
-      title: "Real-Time Extension Monitoring Service",
-      difficulty: "Hard",
-      skills: ["Python", "Redis/Kafka", "Docker", "FastAPI"],
-      mentor: "TBD",
-      description: "Build a service that continuously monitors installed extensions for updates and automatically re-scans when new versions are published. Send alerts when risk level changes.",
-      goals: [
-        "Implement Chrome Web Store polling for updates",
-        "Build queue-based re-scan triggering system",
-        "Create notification system (email, Slack, webhook)",
-        "Design scalable architecture for 10k+ monitored extensions"
-      ]
-    },
-    {
-      id: "policy-engine",
-      title: "Enterprise Policy Engine",
+      id: "qa-testing",
+      title: "QA & Site Reliability",
       difficulty: "Medium",
-      skills: ["Python", "YAML/JSON", "Rule engines"],
-      mentor: "TBD",
-      description: "Create a flexible policy engine that lets enterprises define custom rules for extension approval. Support conditions like permission limits, domain restrictions, and vendor allowlists.",
+      skills: ["Playwright", "Jest", "CI/CD", "Python"],
+      description: "Build comprehensive testing infrastructure to ensure scan reliability and site stability. Create automated test suites for the scanner, API, and frontend to catch issues before they reach users.",
       goals: [
-        "Design policy DSL for rule definitions",
-        "Build rule evaluation engine",
-        "Create policy management API",
-        "Add policy violation reporting"
+        "Write end-to-end tests for critical scan workflows",
+        "Build API integration test suite with mock extensions",
+        "Set up automated regression testing in CI/CD pipeline",
+        "Create monitoring and alerting for scan failures"
       ]
     },
     {
-      id: "vscode-extension",
-      title: "VS Code Extension for Developers",
+      id: "developer-tools",
+      title: "Developer Tools & Documentation",
       difficulty: "Easy",
-      skills: ["TypeScript", "VS Code API", "Node.js"],
-      mentor: "TBD",
-      description: "Build a VS Code extension that helps browser extension developers scan their code during development. Highlight security issues inline and suggest fixes.",
+      skills: ["TypeScript", "Technical Writing", "API Design"],
+      description: "Make it easier for developers to integrate ExtensionShield into their workflows. Build SDK libraries, improve API documentation, and create code examples that help teams adopt extension scanning.",
       goals: [
-        "Create VS Code extension scaffold",
-        "Integrate with ExtensionShield API",
-        "Add inline diagnostics for security issues",
-        "Implement quick-fix suggestions"
+        "Create JavaScript/TypeScript SDK for the API",
+        "Write comprehensive API documentation with examples",
+        "Build sample integrations (GitHub Action, CLI tool)",
+        "Add interactive API explorer to the docs site"
       ]
     }
   ];
@@ -81,7 +63,7 @@ const GSoCIdeasPage = () => {
     <>
       <SEOHead
         title="Google Summer of Code Ideas | ExtensionShield"
-        description="GSoC project ideas for ExtensionShield: ML detection, browser support, real-time monitoring, policy engines, and more."
+        description="GSoC project ideas: Help build open-source tools that scan Chrome extensions for risky behavior and empower community-driven security through shared visibility."
         pathname="/gsoc/ideas"
       />
 
@@ -93,9 +75,13 @@ const GSoCIdeasPage = () => {
               Google Summer of Code 2026
             </div>
             <h1>Project Ideas</h1>
-            <p>
-              Contribute to browser extension security. These are starting points—
-              we welcome your own ideas too!
+            <p className="intro-text">
+              ExtensionShield scans Chrome extensions for risky behavior—security, privacy, 
+              and governance signals—then lets the community report, review, and recommend extensions. 
+              This shared visibility helps catch issues earlier and makes risk more transparent.
+            </p>
+            <p className="sub-text">
+              We're open source because transparency matters. These projects help build that vision.
             </p>
           </header>
 
@@ -127,8 +113,8 @@ const GSoCIdeasPage = () => {
           </div>
 
           <div className="gsoc-cta">
-            <h3>Ready to apply?</h3>
-            <p>Check out our contributor guide and join the community.</p>
+            <h3>Have your own idea?</h3>
+            <p>We welcome proposals that align with our mission—automated scanning + community feedback = better extension safety.</p>
             <div className="cta-buttons">
               <Link to="/contribute" className="cta-button primary">
                 Contributor Guide

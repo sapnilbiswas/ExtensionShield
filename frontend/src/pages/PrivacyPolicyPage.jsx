@@ -28,7 +28,7 @@ const organizationSchema = {
   "url": "https://extensionshield.com",
   "logo": "https://extensionshield.com/logo.png",
   "description": "Chrome extension scanner — safety reports in seconds.",
-  "sameAs": ["https://github.com/Stanzin7/ExtensionShield"]
+  "sameAs": ["https://github.com/Stanzin7/ExtensionScanner"]
 };
 
 const SECTION_IDS = {

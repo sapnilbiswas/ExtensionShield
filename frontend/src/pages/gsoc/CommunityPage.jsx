@@ -24,7 +24,7 @@ const CommunityPage = () => {
 
           <div className="community-grid">
             <a 
-              href="https://github.com/Stanzin7/ExtensionShield/discussions" 
+              href="https://github.com/Stanzin7/ExtensionScanner/discussions" 
               target="_blank" 
               rel="noopener noreferrer"
               className="community-card"
@@ -51,7 +51,7 @@ const CommunityPage = () => {
             </div>
 
             <a 
-              href="https://github.com/Stanzin7/ExtensionShield/issues" 
+              href="https://github.com/Stanzin7/ExtensionScanner/issues" 
               target="_blank" 
               rel="noopener noreferrer"
               className="community-card"

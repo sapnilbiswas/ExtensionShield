@@ -28,7 +28,7 @@ const OpenSourcePage = () => {
 
           <div className="links-grid">
             <a 
-              href="https://github.com/Stanzin7/ExtensionShield" 
+              href="https://github.com/Stanzin7/ExtensionScanner" 
               target="_blank" 
               rel="noopener noreferrer"
               className="link-card featured"

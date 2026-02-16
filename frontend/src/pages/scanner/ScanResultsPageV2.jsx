@@ -506,6 +506,11 @@ const ScanResultsPageV2 = () => {
                   {viewModel?.publisherDisclosures && (() => {
                     const pd = viewModel.publisherDisclosures;
                     const traderLabel = pd.trader_status === "TRADER" ? "Trader" : pd.trader_status === "NON_TRADER" ? "Non-trader" : "Unknown";
+                    const traderDescription = pd.trader_status === "TRADER" 
+                      ? "This developer is registered as a trader in the EU. Consumer rights apply to purchases from this developer."
+                      : pd.trader_status === "NON_TRADER"
+                      ? "This developer has not identified itself as a trader. Consumer rights may not apply to contracts with this developer."
+                      : "Trader status unknown. Unable to determine if consumer rights apply.";
                     const getHost = (url) => {
                       try { return new URL(url).host; } catch { return url; }
                     };
@@ -514,15 +519,67 @@ const ScanResultsPageV2 = () => {
                       pd.support_email && { key: "support", href: `mailto:${pd.support_email}`, label: "Support", icon: "✉" },
                       pd.privacy_policy_url && { key: "privacy", href: pd.privacy_policy_url, label: "Privacy", icon: "🔒" },
                     ].filter(Boolean);
-                    const allChips = [{ key: "trader", label: traderLabel, icon: "◉", title: "From Chrome Web Store disclosure; not a security guarantee.", link: false }, ...linkChips];
-                    const maxVisible = 3;
-                    const visibleChips = allChips.length <= maxVisible ? allChips : allChips.slice(0, 2);
-                    const overflowCount = allChips.length - visibleChips.length;
+                    const allChips = [{ key: "trader", label: traderLabel, icon: "◉", title: traderDescription, link: false }, ...linkChips];
                     return (
                       <div className="publisher-disclosures">
-                        <div className="publisher-disclosures-label">Publisher</div>
+                        <div className="publisher-disclosures-header">
+                          <span className="publisher-disclosures-label">Publisher</span>
+                          <button
+                            type="button"
+                            className="publisher-info-icon"
+                            onClick={() => setPublisherDetailsOpen((o) => !o)}
+                            aria-expanded={publisherDetailsOpen}
+                            aria-haspopup="dialog"
+                            title="About this publisher"
+                            ref={publisherDetailsRef}
+                          >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                              <circle cx="12" cy="12" r="10" />
+                              <line x1="12" y1="16" x2="12" y2="12" />
+                              <line x1="12" y1="8" x2="12.01" y2="8" />
+                            </svg>
+                          </button>
+                          {publisherDetailsOpen && (
+                            <>
+                              <div
+                                className="publisher-details-backdrop"
+                                role="presentation"
+                                onClick={() => setPublisherDetailsOpen(false)}
+                                onKeyDown={(e) => e.key === "Escape" && setPublisherDetailsOpen(false)}
+                              />
+                              <div className="publisher-info-popover" role="dialog" aria-label="Publisher information">
+                                <p className="publisher-info-row">
+                                  <span className="publisher-info-label">Trader status:</span>
+                                  <span className="publisher-info-value">{traderLabel}</span>
+                                </p>
+                                <p className="publisher-info-description">{traderDescription}</p>
+                                {pd.developer_website_url && (
+                                  <p className="publisher-info-row">
+                                    <span className="publisher-info-label">Website:</span>
+                                    <a href={pd.developer_website_url} target="_blank" rel="noopener noreferrer">{getHost(pd.developer_website_url)}</a>
+                                  </p>
+                                )}
+                                {pd.support_email && (
+                                  <p className="publisher-info-row">
+                                    <span className="publisher-info-label">Support:</span>
+                                    <a href={`mailto:${pd.support_email}`}>{pd.support_email}</a>
+                                  </p>
+                                )}
+                                {pd.privacy_policy_url && (
+                                  <p className="publisher-info-row">
+                                    <span className="publisher-info-label">Privacy:</span>
+                                    <a href={pd.privacy_policy_url} target="_blank" rel="noopener noreferrer">{getHost(pd.privacy_policy_url)}</a>
+                                  </p>
+                                )}
+                                <p className="publisher-info-note">
+                                  Information from Chrome Web Store disclosures. Not a security guarantee.
+                                </p>
+                              </div>
+                            </>
+                          )}
+                        </div>
                         <div className="publisher-disclosures-chips">
-                          {visibleChips.map((c) =>
+                          {allChips.map((c) =>
                             c.link !== false ? (
                               <a
                                 key={c.key}
@@ -545,68 +602,6 @@ const ScanResultsPageV2 = () => {
                               </span>
                             )
                           )}
-                          {overflowCount > 0 && (
-                            <button
-                              type="button"
-                              className="publisher-chip publisher-chip-more"
-                              onClick={() => setPublisherDetailsOpen((o) => !o)}
-                              aria-expanded={publisherDetailsOpen}
-                              aria-haspopup="dialog"
-                            >
-                              +{overflowCount}
-                            </button>
-                          )}
-                          <div className="publisher-details-wrap" ref={publisherDetailsRef}>
-                            <button
-                              type="button"
-                              className="publisher-chip publisher-chip-details"
-                              onClick={() => setPublisherDetailsOpen((o) => !o)}
-                              aria-expanded={publisherDetailsOpen}
-                              aria-haspopup="dialog"
-                            >
-                              Details <span className="publisher-chip-caret" aria-hidden>▾</span>
-                            </button>
-                            {publisherDetailsOpen && (
-                              <>
-                                <div
-                                  className="publisher-details-backdrop"
-                                  role="presentation"
-                                  onClick={() => setPublisherDetailsOpen(false)}
-                                  onKeyDown={(e) => e.key === "Escape" && setPublisherDetailsOpen(false)}
-                                />
-                                <div className="publisher-details-popover" role="dialog" aria-label="Publisher and disclosure details">
-                                  <p className="publisher-details-row">
-                                    <span className="publisher-details-muted">Trader status:</span> {traderLabel} — from Chrome Web Store; not a security guarantee.
-                                  </p>
-                                  {pd.developer_website_url && (
-                                    <p className="publisher-details-row">
-                                      <span className="publisher-details-muted">Website:</span>{" "}
-                                      <a href={pd.developer_website_url} target="_blank" rel="noopener noreferrer">{getHost(pd.developer_website_url)}</a>
-                                    </p>
-                                  )}
-                                  {pd.support_email && (
-                                    <p className="publisher-details-row">
-                                      <span className="publisher-details-muted">Support:</span>{" "}
-                                      <a href={`mailto:${pd.support_email}`}>{pd.support_email}</a>
-                                    </p>
-                                  )}
-                                  {pd.privacy_policy_url && (
-                                    <p className="publisher-details-row">
-                                      <span className="publisher-details-muted">Privacy:</span>{" "}
-                                      <a href={pd.privacy_policy_url} target="_blank" rel="noopener noreferrer">{getHost(pd.privacy_policy_url)}</a>
-                                    </p>
-                                  )}
-                                  {(pd.last_updated_iso != null || pd.user_count != null || pd.rating_count != null) && (
-                                    <p className="publisher-details-row publisher-details-meta">
-                                      {pd.last_updated_iso != null && <span>Updated {pd.last_updated_iso}</span>}
-                                      {pd.user_count != null && <span>{pd.user_count.toLocaleString()} users</span>}
-                                      {pd.rating_count != null && <span>{pd.rating_count.toLocaleString()} ratings</span>}
-                                    </p>
-                                  )}
-                                </div>
-                              </>
-                            )}
-                          </div>
                         </div>
                       </div>
                     );

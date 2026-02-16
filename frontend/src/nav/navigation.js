@@ -145,7 +145,7 @@ export const footerConfig = {
     },
     {
       label: "GitHub",
-      href: "https://github.com/Stanzin7/ExtensionShield",
+      href: "https://github.com/Stanzin7/ExtensionScanner",
       external: true
     }
   ]

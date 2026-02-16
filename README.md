@@ -14,7 +14,7 @@
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-org/ExtensionShield.git
+git clone https://github.com/Stanzin7/ExtensionScanner.git
 cd ExtensionShield
 
 # 2. Configure environment

@@ -227,7 +227,7 @@ export const routes = [
     element: <GSoCIdeasPage />,
     seo: {
       title: "Google Summer of Code Ideas | ExtensionShield",
-      description: "GSoC project ideas for ExtensionShield: ML detection, browser support, real-time monitoring, and more.",
+      description: "GSoC project ideas: Help build open-source tools that scan Chrome extensions for risky behavior and empower community-driven security.",
       canonical: "/gsoc/ideas"
     },
     priority: 0.7,

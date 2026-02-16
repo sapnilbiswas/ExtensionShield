@@ -37,19 +37,27 @@
   h1 {
     font-size: clamp(2rem, 5vw, 3rem);
     font-weight: 700;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
     background: linear-gradient(135deg, #f8fafc 0%, #94a3b8 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
   
-  p {
+  .intro-text {
     font-size: 1.125rem;
+    color: var(--atlas-text-primary, #f8fafc);
+    max-width: 700px;
+    margin: 0 auto 1rem;
+    line-height: 1.8;
+  }
+  
+  .sub-text {
+    font-size: 1rem;
     color: var(--atlas-text-secondary, #94a3b8);
     max-width: 600px;
     margin: 0 auto;
-    line-height: 1.7;
+    line-height: 1.6;
   }
 }
 

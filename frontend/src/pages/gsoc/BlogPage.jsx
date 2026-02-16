@@ -51,7 +51,7 @@ const BlogPage = () => {
               We're just getting started. Follow us on GitHub for updates.
             </p>
             <a 
-              href="https://github.com/Stanzin7/ExtensionShield" 
+              href="https://github.com/Stanzin7/ExtensionScanner" 
               target="_blank" 
               rel="noopener noreferrer"
               className="cta-button"

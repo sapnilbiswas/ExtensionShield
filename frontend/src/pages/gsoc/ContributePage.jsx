@@ -151,7 +151,7 @@ const ContributePage = () => {
             <div className="dev-cta">
               <div className="dev-cta-buttons">
                 <a 
-                  href="https://github.com/Stanzin7/ExtensionShield" 
+                  href="https://github.com/Stanzin7/ExtensionScanner" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="dev-cta-button primary"

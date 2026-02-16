@@ -6,6 +6,20 @@
   right: 1.5rem;
   z-index: 2;
 
+  /* Responsive: move below title on smaller screens */
+  @media (max-width: 768px) {
+    position: relative;
+    top: auto;
+    right: auto;
+    margin-top: 0.75rem;
+    margin-left: 0;
+    align-self: flex-start;
+  }
+
+  @media (max-width: 480px) {
+    margin-top: 0.5rem;
+  }
+
   &--compact {
     .result-feedback__row {
       display: flex;
@@ -19,6 +33,10 @@
       text-transform: uppercase;
       letter-spacing: 0.04em;
       color: rgba(255, 255, 255, 0.4);
+
+      @media (max-width: 480px) {
+        font-size: 0.625rem;
+      }
     }
 
     .result-feedback__icons {
@@ -41,6 +59,12 @@
       font-size: 1rem;
       cursor: pointer;
       transition: all 0.15s ease;
+
+      @media (max-width: 480px) {
+        width: 32px;
+        height: 32px;
+        font-size: 0.875rem;
+      }
 
       &:hover {
         background: rgba(255, 255, 255, 0.1);
@@ -108,6 +132,16 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+
+  @media (max-width: 768px) {
+    right: auto;
+    left: 0;
+  }
+
+  @media (max-width: 480px) {
+    min-width: 180px;
+    max-width: calc(100vw - 48px);
+  }
 }
 
 .result-feedback__popover-title {

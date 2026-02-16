@@ -33,11 +33,11 @@ export default defineConfig(({ mode }) => {
         "object-src 'none'",
         "form-action 'self'",
         "upgrade-insecure-requests",
-        "script-src 'self' https://static.cloudflareinsights.com", // No unsafe-eval or unsafe-inline in production
+        "script-src 'self' https://static.cloudflareinsights.com https://www.googletagmanager.com", // gtag.js (Google Ads)
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com", // unsafe-inline needed for React inline styles
         "font-src 'self' https://fonts.gstatic.com data:",
         "img-src 'self' data: https:",
-        "connect-src 'self' https://*.supabase.co https://*.supabase.io",
+        "connect-src 'self' https://*.supabase.co https://*.supabase.io https://www.googletagmanager.com https://www.google-analytics.com https://www.google.com",
         "frame-src 'self' https://*.supabase.co",
         "worker-src 'self'",
         "manifest-src 'self'",

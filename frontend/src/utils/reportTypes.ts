@@ -398,6 +398,18 @@ export interface RawScanResult {
   metadata?: RawMetadata;
   manifest?: RawManifest;
 
+  // Publisher & Disclosures (Chrome Web Store listing; not manifest)
+  publisher_disclosures?: {
+    trader_status?: 'TRADER' | 'NON_TRADER' | 'UNKNOWN';
+    developer_website_url?: string | null;
+    support_email?: string | null;
+    privacy_policy_url?: string | null;
+    user_count?: number | null;
+    rating_value?: number | null;
+    rating_count?: number | null;
+    last_updated_iso?: string | null;
+  };
+
   // Analysis results
   permissions_analysis?: RawPermissionsAnalysis;
   sast_results?: RawSASTResults;
@@ -587,6 +599,18 @@ export interface MetaVM {
   scanTimestamp?: string;
 }
 
+/** Publisher & Disclosures from Chrome Web Store listing (not manifest). All nullable. */
+export interface PublisherDisclosuresVM {
+  trader_status: 'TRADER' | 'NON_TRADER' | 'UNKNOWN';
+  developer_website_url?: string | null;
+  support_email?: string | null;
+  privacy_policy_url?: string | null;
+  user_count?: number | null;
+  rating_value?: number | null;
+  rating_count?: number | null;
+  last_updated_iso?: string | null;
+}
+
 /**
  * ReportViewModel - Normalized UI model
  * All fields are derived from RawScanResult, never invented
@@ -599,5 +623,6 @@ export interface ReportViewModel {
   permissions: PermissionsVM;
   evidenceIndex: Record<string, EvidenceItemVM>;
   consumerInsights?: ConsumerInsights;
+  publisherDisclosures?: PublisherDisclosuresVM;
 }
 

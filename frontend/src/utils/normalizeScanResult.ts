@@ -899,7 +899,23 @@ export function normalizeScanResult(raw: RawScanResult): ReportViewModel {
     scenarios: Array.isArray(consumerRaw.scenarios) ? consumerRaw.scenarios : [],
     top_drivers: Array.isArray(consumerRaw.top_drivers) ? consumerRaw.top_drivers : [],
   } : undefined;
-  
+
+  const pd = raw.publisher_disclosures;
+  const publisherDisclosures = pd
+    ? {
+        trader_status: (pd.trader_status === 'TRADER' || pd.trader_status === 'NON_TRADER'
+          ? pd.trader_status
+          : 'UNKNOWN') as 'TRADER' | 'NON_TRADER' | 'UNKNOWN',
+        developer_website_url: pd.developer_website_url ?? null,
+        support_email: pd.support_email ?? null,
+        privacy_policy_url: pd.privacy_policy_url ?? null,
+        user_count: pd.user_count ?? null,
+        rating_value: pd.rating_value ?? null,
+        rating_count: pd.rating_count ?? null,
+        last_updated_iso: pd.last_updated_iso ?? null,
+      }
+    : undefined;
+
   return {
     meta,
     scores,
@@ -908,6 +924,7 @@ export function normalizeScanResult(raw: RawScanResult): ReportViewModel {
     permissions,
     evidenceIndex,
     consumerInsights,
+    publisherDisclosures,
   };
 }
 

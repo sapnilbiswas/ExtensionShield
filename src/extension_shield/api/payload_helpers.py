@@ -3,6 +3,7 @@ Helper utilities that keep FastAPI endpoints lean by handling legacy payload upg
 report view model construction, and logging the shape of scan results.
 """
 
+import re
 import logging
 from typing import Any, Dict, Optional
 
@@ -14,6 +15,76 @@ from extension_shield.governance.tool_adapters import SignalPackBuilder
 from extension_shield.scoring.engine import ScoringEngine
 
 logger = logging.getLogger(__name__)
+
+
+def build_publisher_disclosures(
+    metadata: Optional[Dict[str, Any]],
+    governance_bundle: Optional[Dict[str, Any]],
+) -> Dict[str, Any]:
+    """
+    Build publisher_disclosures from Chrome Web Store metadata (not manifest).
+    Used for the "Publisher & Disclosures" section in the extension card.
+    All fields are nullable; frontend shows "Unknown" for trader_status when missing and hides empty links.
+    """
+    meta = metadata or {}
+    store_listing = {}
+    if governance_bundle and isinstance(governance_bundle.get("store_listing"), dict):
+        store_listing = governance_bundle["store_listing"]
+
+    # Trader status: from CWS disclosure (TRADER | NON_TRADER | UNKNOWN)
+    trader = meta.get("trader_status")
+    if trader in ("TRADER", "NON_TRADER"):
+        trader_status = trader
+    else:
+        trader_status = "UNKNOWN"
+
+    # Privacy policy URL: prefer store_listing extracted URL, else first URL in privacy_policy text
+    privacy_policy_url = store_listing.get("privacy_policy_url")
+    if not privacy_policy_url and meta.get("privacy_policy"):
+        text = meta["privacy_policy"]
+        if isinstance(text, str):
+            urls = re.findall(r"https?://[^\s<>\"']+", text)
+            for u in urls:
+                if "privacy" in u.lower() or "policy" in u.lower() or "legal" in u.lower():
+                    privacy_policy_url = u.rstrip(".,)")
+                    break
+            if not privacy_policy_url and urls:
+                privacy_policy_url = urls[0].rstrip(".,)")
+
+    # user_count: int or None
+    user_count = meta.get("user_count")
+    if user_count is not None and not isinstance(user_count, int):
+        try:
+            user_count = int(user_count) if user_count is not None else None
+        except (TypeError, ValueError):
+            user_count = None
+
+    # rating_value: float or None
+    rating_value = meta.get("rating")
+    if rating_value is not None and not isinstance(rating_value, (int, float)):
+        try:
+            rating_value = float(rating_value) if rating_value is not None else None
+        except (TypeError, ValueError):
+            rating_value = None
+
+    # rating_count: int or None
+    rating_count = meta.get("ratings_count") or meta.get("rating_count")
+    if rating_count is not None and not isinstance(rating_count, int):
+        try:
+            rating_count = int(rating_count) if rating_count is not None else None
+        except (TypeError, ValueError):
+            rating_count = None
+
+    return {
+        "trader_status": trader_status,
+        "developer_website_url": meta.get("developer_website") or None,
+        "support_email": meta.get("developer_email") or None,
+        "privacy_policy_url": privacy_policy_url or None,
+        "user_count": user_count,
+        "rating_value": float(rating_value) if rating_value is not None else None,
+        "rating_count": rating_count,
+        "last_updated_iso": meta.get("last_updated") or None,
+    }
 
 
 def build_report_view_model_safe(
@@ -77,6 +148,9 @@ def upgrade_legacy_payload(payload: Dict[str, Any], extension_id: str) -> Dict[s
         and has_consumer_insights_before
         and not force_recompute
     ):
+        payload["publisher_disclosures"] = build_publisher_disclosures(
+            payload.get("metadata"), payload.get("governance_bundle")
+        )
         logger.info(
             "[UPGRADE] extension_id=%s, results_payload_upgraded=false, has_scoring_v2=%s→%s, has_report_view_model=%s→%s, has_consumer_insights=%s→%s",
             extension_id,
@@ -179,6 +253,9 @@ def upgrade_legacy_payload(payload: Dict[str, Any], extension_id: str) -> Dict[s
         final_has_consumer_insights = bool(
             payload.get("report_view_model", {}).get("consumer_insights")
         )
+        payload["publisher_disclosures"] = build_publisher_disclosures(
+            payload.get("metadata"), payload.get("governance_bundle")
+        )
         logger.info(
             "[UPGRADE] extension_id=%s, results_payload_upgraded=%s, has_scoring_v2=%s→%s, has_report_view_model=%s→%s, has_consumer_insights=%s→%s",
             extension_id,
@@ -202,6 +279,9 @@ def upgrade_legacy_payload(payload: Dict[str, Any], extension_id: str) -> Dict[s
             ensure_consumer_insights(payload)
         except Exception:
             pass
+        payload["publisher_disclosures"] = build_publisher_disclosures(
+            payload.get("metadata"), payload.get("governance_bundle")
+        )
         final_has_scoring_v2 = bool(
             payload.get("scoring_v2")
             or payload.get("governance_bundle", {}).get("scoring_v2")

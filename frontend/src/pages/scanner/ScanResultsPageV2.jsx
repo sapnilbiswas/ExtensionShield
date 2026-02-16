@@ -61,6 +61,25 @@ const ScanResultsPageV2 = () => {
   const loadedScanIdRef = useRef(null);
   const isLoadingRef = useRef(false);
 
+  // Responsive donut size for small screens
+  const [donutSize, setDonutSize] = useState(300);
+  const [publisherDetailsOpen, setPublisherDetailsOpen] = useState(false);
+  const publisherDetailsRef = useRef(null);
+
+  useEffect(() => {
+    if (!publisherDetailsOpen) return;
+    const onKey = (e) => { if (e.key === "Escape") setPublisherDetailsOpen(false); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [publisherDetailsOpen]);
+
+  useEffect(() => {
+    const updateSize = () => setDonutSize(window.innerWidth <= 480 ? 220 : window.innerWidth <= 768 ? 260 : 300);
+    updateSize();
+    window.addEventListener("resize", updateSize);
+    return () => window.removeEventListener("resize", updateSize);
+  }, []);
+
   // Clear stale local state immediately when scanId changes so previous
   // extension's report never flashes while the new one loads.
   useEffect(() => {
@@ -297,32 +316,13 @@ const ScanResultsPageV2 = () => {
     });
   };
 
-  // Derive risk/feature labels for extension card (Obfuscation, Broad host access, Trackers)
-  const getRiskLabels = () => {
-    const labels = [];
-    const allFactors = [
-      ...(factorsByLayer?.security || []),
-      ...(factorsByLayer?.privacy || []),
-    ];
-    const obfuscatedFiles = scanResults?.entropy_analysis?.obfuscated_files ?? 
-      scanResults?.entropyAnalysis?.obfuscated_files ?? 0;
-    const hasObfuscation = obfuscatedFiles > 0 || 
-      allFactors.some(f => (f.name || '').toLowerCase().includes('obfuscat'));
-    const hasTrackers = allFactors.some(f => 
-      (f.name || '').toLowerCase().includes('tracker') || 
-      (f.name || '').toLowerCase().includes('third')
-    );
-    const broadHost = permissions?.broadHostPatterns?.length > 0 || 
-      (Array.isArray(scanResults?.manifest?.permissions) && scanResults.manifest.permissions.some(p => 
-        typeof p === 'string' && (p.includes('<all_urls>') || p.includes('*://*/*'))
-      ));
-    if (hasObfuscation) labels.push({ label: 'Obfuscation', icon: '▶' });
-    if (broadHost) labels.push({ label: 'Broad host access', icon: '◉' });
-    if (hasTrackers) labels.push({ label: 'Trackers', icon: '◐' });
-    return labels;
-  };
-
-  const riskLabels = getRiskLabels();
+  // Chrome Web Store URL: use meta.storeUrl if available, else build from extension ID
+  const extensionIdForStore = viewModel?.meta?.extensionId || scanId;
+  const chromeStoreUrl =
+    viewModel?.meta?.storeUrl ||
+    (extensionIdForStore
+      ? `https://chromewebstore.google.com/detail/_/${extensionIdForStore}`
+      : null);
 
   // Top 3 findings for Quick Summary preview (one line each)
   const topThreeFindings = [
@@ -460,23 +460,163 @@ const ScanResultsPageV2 = () => {
                         </span>
                       </>
                     )}
-                  </div>
-                  {riskLabels.length > 0 && (
-                    <div className="extension-risk-pills">
-                      {riskLabels.map((r, i) => (
-                        <span key={i} className="risk-pill">
-                          <span className="risk-pill-icon">{r.icon}</span>
-                          {r.label}
+                    {viewModel?.publisherDisclosures?.last_updated_iso && (
+                      <>
+                        <span className="ext-divider" />
+                        <span className="ext-detail ext-detail-muted">
+                          <span className="ext-detail-icon">↻</span>
+                          Updated {viewModel.publisherDisclosures.last_updated_iso}
                         </span>
-                      ))}
+                      </>
+                    )}
+                    {viewModel?.publisherDisclosures?.user_count != null && meta?.users == null && (
+                      <>
+                        <span className="ext-divider" />
+                        <span className="ext-detail ext-detail-muted">
+                          <span className="ext-detail-icon">👥</span>
+                          {viewModel.publisherDisclosures.user_count >= 1000
+                            ? `${(viewModel.publisherDisclosures.user_count / 1000).toFixed(0)}k users`
+                            : `${viewModel.publisherDisclosures.user_count} users`}
+                        </span>
+                      </>
+                    )}
+                    {viewModel?.publisherDisclosures?.rating_count != null && meta?.ratingCount == null && (
+                      <>
+                        <span className="ext-divider" />
+                        <span className="ext-detail ext-detail-muted">
+                          <span className="ext-detail-icon">⭐</span>
+                          {viewModel.publisherDisclosures.rating_count.toLocaleString()} ratings
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  {chromeStoreUrl && (
+                    <div className="extension-card-store-link-wrap">
+                      <a
+                        href={chromeStoreUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="extension-card-store-link"
+                        aria-label="Open extension in Chrome Web Store"
+                      >
+                        View in Chrome Web Store
+                      </a>
                     </div>
                   )}
+                  {viewModel?.publisherDisclosures && (() => {
+                    const pd = viewModel.publisherDisclosures;
+                    const traderLabel = pd.trader_status === "TRADER" ? "Trader" : pd.trader_status === "NON_TRADER" ? "Non-trader" : "Unknown";
+                    const getHost = (url) => {
+                      try { return new URL(url).host; } catch { return url; }
+                    };
+                    const linkChips = [
+                      pd.developer_website_url && { key: "website", href: pd.developer_website_url, label: "Website", icon: "↗" },
+                      pd.support_email && { key: "support", href: `mailto:${pd.support_email}`, label: "Support", icon: "✉" },
+                      pd.privacy_policy_url && { key: "privacy", href: pd.privacy_policy_url, label: "Privacy", icon: "🔒" },
+                    ].filter(Boolean);
+                    const allChips = [{ key: "trader", label: traderLabel, icon: "◉", title: "From Chrome Web Store disclosure; not a security guarantee.", link: false }, ...linkChips];
+                    const maxVisible = 3;
+                    const visibleChips = allChips.length <= maxVisible ? allChips : allChips.slice(0, 2);
+                    const overflowCount = allChips.length - visibleChips.length;
+                    return (
+                      <div className="publisher-disclosures">
+                        <div className="publisher-disclosures-label">Publisher</div>
+                        <div className="publisher-disclosures-chips">
+                          {visibleChips.map((c) =>
+                            c.link !== false ? (
+                              <a
+                                key={c.key}
+                                href={c.href}
+                                target={c.key !== "support" ? "_blank" : undefined}
+                                rel={c.key !== "support" ? "noopener noreferrer" : undefined}
+                                className="publisher-chip publisher-chip-link"
+                              >
+                                <span className="publisher-chip-icon" aria-hidden>{c.icon}</span>
+                                <span>{c.label}</span>
+                              </a>
+                            ) : (
+                              <span
+                                key={c.key}
+                                className="publisher-chip"
+                                title={c.title}
+                              >
+                                <span className="publisher-chip-icon" aria-hidden>{c.icon}</span>
+                                <span>{c.label}</span>
+                              </span>
+                            )
+                          )}
+                          {overflowCount > 0 && (
+                            <button
+                              type="button"
+                              className="publisher-chip publisher-chip-more"
+                              onClick={() => setPublisherDetailsOpen((o) => !o)}
+                              aria-expanded={publisherDetailsOpen}
+                              aria-haspopup="dialog"
+                            >
+                              +{overflowCount}
+                            </button>
+                          )}
+                          <div className="publisher-details-wrap" ref={publisherDetailsRef}>
+                            <button
+                              type="button"
+                              className="publisher-chip publisher-chip-details"
+                              onClick={() => setPublisherDetailsOpen((o) => !o)}
+                              aria-expanded={publisherDetailsOpen}
+                              aria-haspopup="dialog"
+                            >
+                              Details <span className="publisher-chip-caret" aria-hidden>▾</span>
+                            </button>
+                            {publisherDetailsOpen && (
+                              <>
+                                <div
+                                  className="publisher-details-backdrop"
+                                  role="presentation"
+                                  onClick={() => setPublisherDetailsOpen(false)}
+                                  onKeyDown={(e) => e.key === "Escape" && setPublisherDetailsOpen(false)}
+                                />
+                                <div className="publisher-details-popover" role="dialog" aria-label="Publisher and disclosure details">
+                                  <p className="publisher-details-row">
+                                    <span className="publisher-details-muted">Trader status:</span> {traderLabel} — from Chrome Web Store; not a security guarantee.
+                                  </p>
+                                  {pd.developer_website_url && (
+                                    <p className="publisher-details-row">
+                                      <span className="publisher-details-muted">Website:</span>{" "}
+                                      <a href={pd.developer_website_url} target="_blank" rel="noopener noreferrer">{getHost(pd.developer_website_url)}</a>
+                                    </p>
+                                  )}
+                                  {pd.support_email && (
+                                    <p className="publisher-details-row">
+                                      <span className="publisher-details-muted">Support:</span>{" "}
+                                      <a href={`mailto:${pd.support_email}`}>{pd.support_email}</a>
+                                    </p>
+                                  )}
+                                  {pd.privacy_policy_url && (
+                                    <p className="publisher-details-row">
+                                      <span className="publisher-details-muted">Privacy:</span>{" "}
+                                      <a href={pd.privacy_policy_url} target="_blank" rel="noopener noreferrer">{getHost(pd.privacy_policy_url)}</a>
+                                    </p>
+                                  )}
+                                  {(pd.last_updated_iso != null || pd.user_count != null || pd.rating_count != null) && (
+                                    <p className="publisher-details-row publisher-details-meta">
+                                      {pd.last_updated_iso != null && <span>Updated {pd.last_updated_iso}</span>}
+                                      {pd.user_count != null && <span>{pd.user_count.toLocaleString()} users</span>}
+                                      {pd.rating_count != null && <span>{pd.rating_count.toLocaleString()} ratings</span>}
+                                    </p>
+                                  )}
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
                 <div className="extension-card-score">
                   <DonutScore
                     score={overallScore}
                     band={overallBand}
-                    size={300}
+                    size={donutSize}
                   />
                 </div>
               </div>

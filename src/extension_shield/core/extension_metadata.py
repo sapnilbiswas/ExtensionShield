@@ -574,6 +574,33 @@ class ExtensionMetadata:
 
         return None
 
+    @staticmethod
+    def _extract_trader_status(soup) -> Optional[str]:
+        """
+        Extract trader / non-trader disclosure from CWS listing (EU DSA requirement).
+        Shown at the bottom of the extension page as "Trader" or "Non-trader".
+
+        Returns:
+            "TRADER" | "NON_TRADER" | None (None => show as UNKNOWN in UI)
+        """
+        try:
+            page_text = soup.get_text()
+            text_lower = page_text.lower()
+            # Look for explicit disclosure (e.g. "Non-trader" or "Trader" in developer/legal section)
+            if re.search(r"\bnon-?trader\b", text_lower):
+                logger.debug("Found trader status: NON_TRADER")
+                return "NON_TRADER"
+            if re.search(r"\btrader\b", text_lower):
+                # Avoid matching "non-trader" as "trader"
+                if "non-trader" in text_lower or "nontrader" in text_lower.replace(" ", ""):
+                    logger.debug("Found trader status: NON_TRADER (from non-trader)")
+                    return "NON_TRADER"
+                logger.debug("Found trader status: TRADER")
+                return "TRADER"
+        except Exception as e:
+            logger.debug("Error extracting trader status: %s", e)
+        return None
+
     def fetch_metadata(self) -> Optional[Dict]:
         """
         Fetches metadata for the Chrome extension from the Chrome Web Store
@@ -605,6 +632,7 @@ class ExtensionMetadata:
             metadata["developer_email"] = self._extract_developer_email(soup)
             metadata["developer_website"] = self._extract_website(soup)
             metadata["privacy_policy"] = self._extract_privacy_policy(soup)
+            metadata["trader_status"] = self._extract_trader_status(soup)
 
             # Additional metadata
             metadata["follows_best_practices"] = self._extract_is_follows_best_practices(soup)

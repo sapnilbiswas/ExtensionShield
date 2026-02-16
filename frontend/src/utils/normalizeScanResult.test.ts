@@ -287,6 +287,50 @@ describe('normalizeScanResult', () => {
       expect(result.keyFindings.some(f => f.title === 'VIRUSTOTAL_MALWARE')).toBe(true);
       expect(result.keyFindings[0].severity).toBe('high');
     });
+
+    it('should normalize publisher_disclosures with NON_TRADER and links', () => {
+      const rawWithDisclosures: RawScanResult = {
+        extension_id: 'ext-with-disclosures',
+        publisher_disclosures: {
+          trader_status: 'NON_TRADER',
+          developer_website_url: 'https://example.com',
+          support_email: 'support@example.com',
+          privacy_policy_url: 'https://example.com/privacy',
+          user_count: 50000,
+          rating_value: 4.5,
+          rating_count: 1200,
+          last_updated_iso: 'March 2025',
+        },
+      };
+      const result = normalizeScanResult(rawWithDisclosures);
+      expect(result.publisherDisclosures).toBeDefined();
+      expect(result.publisherDisclosures!.trader_status).toBe('NON_TRADER');
+      expect(result.publisherDisclosures!.developer_website_url).toBe('https://example.com');
+      expect(result.publisherDisclosures!.support_email).toBe('support@example.com');
+      expect(result.publisherDisclosures!.privacy_policy_url).toBe('https://example.com/privacy');
+      expect(result.publisherDisclosures!.user_count).toBe(50000);
+      expect(result.publisherDisclosures!.rating_value).toBe(4.5);
+      expect(result.publisherDisclosures!.rating_count).toBe(1200);
+      expect(result.publisherDisclosures!.last_updated_iso).toBe('March 2025');
+    });
+
+    it('should map missing trader_status to UNKNOWN and null links to null', () => {
+      const rawMinimalDisclosures: RawScanResult = {
+        extension_id: 'ext-minimal',
+        publisher_disclosures: {
+          trader_status: 'UNKNOWN',
+          developer_website_url: null,
+          support_email: null,
+          privacy_policy_url: null,
+        },
+      };
+      const result = normalizeScanResult(rawMinimalDisclosures);
+      expect(result.publisherDisclosures).toBeDefined();
+      expect(result.publisherDisclosures!.trader_status).toBe('UNKNOWN');
+      expect(result.publisherDisclosures!.developer_website_url).toBeNull();
+      expect(result.publisherDisclosures!.support_email).toBeNull();
+      expect(result.publisherDisclosures!.privacy_policy_url).toBeNull();
+    });
   });
 
   describe('error handling', () => {

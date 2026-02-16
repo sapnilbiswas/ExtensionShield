@@ -44,6 +44,7 @@ from extension_shield.core.config import get_settings
 from extension_shield.api.csp_middleware import CSPMiddleware
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 from extension_shield.api.payload_helpers import (
+    build_publisher_disclosures,
     build_report_view_model_safe,
     ensure_consumer_insights,
     log_scan_results_return_shape,
@@ -1023,8 +1024,11 @@ async def run_analysis_workflow(url: str, extension_id: str):
                 "governance_bundle": sanitize_for_json(final_state.get("governance_bundle")),
                 "governance_report": sanitize_for_json(final_state.get("governance_report")),
                 "governance_error": final_state.get("governance_error"),
+                "publisher_disclosures": build_publisher_disclosures(
+                    metadata, final_state.get("governance_bundle")
+                ),
             }
-            
+
             # Final sanitization pass to ensure JSON-serializability
             scan_results[extension_id] = sanitize_for_json(raw_results)
             scan_status[extension_id] = "completed"

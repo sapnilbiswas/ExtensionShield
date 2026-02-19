@@ -603,6 +603,15 @@ html.light {
   box-shadow: 0 0 0 4px var(--atlas-accent-subtle), 0 0 0 1px var(--atlas-accent);
 }
 
+/* Homepage search icon button: no background, no border, dark icon for contrast */
+.light .search-btn.search-btn-icon,
+.light .search-btn.search-btn-icon:hover {
+  background: transparent !important;
+  border: none !important;
+  color: #262626 !important;
+  box-shadow: none !important;
+}
+
 /* Optional rust CTA (reference-style warm accent) */
 .light .cta-rust,
 .light .btn-cta-rust {

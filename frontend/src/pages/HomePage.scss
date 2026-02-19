@@ -435,17 +435,17 @@
     outline-offset: 2px;
   }
 
-  /* Magnifying glass search button – hover matches sign-in (filled accent, smooth transition) */
+  /* Magnifying glass search button: no background, no border, dark icon */
   &.search-btn-icon {
     min-width: 0;
     width: 48px;
     min-height: 48px;
     padding: 0.75rem;
     background: transparent;
-    border: 1px solid var(--atlas-border);
+    border: none;
     color: var(--atlas-text-primary);
     border-radius: 10px;
-    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+    transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 
     svg {
       width: 22px;
@@ -456,7 +456,7 @@
 
     &:hover {
       background: rgba(255, 255, 255, 0.08);
-      border-color: rgba(148, 163, 184, 0.35);
+      border: none;
       box-shadow: none;
     }
 
@@ -1936,15 +1936,17 @@
     }
   }
 
-  /* Search icon button: same hover as sign-in – filled green, white icon, accent-hover transition */
+  /* Search icon button: no border, no green; dark icon for contrast */
   .search-btn.search-btn-icon {
-    border-color: var(--atlas-border);
+    background: transparent;
+    border: none;
+    color: var(--atlas-text-primary);
 
     &:hover {
-      background: var(--atlas-accent-hover);
-      border-color: var(--atlas-accent-hover);
-      color: #fff;
-      box-shadow: 0 4px 12px var(--atlas-accent-glow);
+      background: rgba(0, 0, 0, 0.06);
+      border: none;
+      color: var(--atlas-text-primary);
+      box-shadow: none;
     }
   }
 

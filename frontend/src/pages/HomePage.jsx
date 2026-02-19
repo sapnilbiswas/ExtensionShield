@@ -4,26 +4,13 @@ import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { useScan } from "../context/ScanContext";
 import { useAuth } from "../context/AuthContext";
-import databaseService from "../services/databaseService";
 import SEOHead from "../components/SEOHead";
 import { HeroOrbitalCarousel } from "../components/hero";
 import DemoModal from "../components/DemoModal";
 import OpenCoreEnginesSection from "../components/home/OpenCoreEnginesSection";
 import HowWeProtectYouSection from "../components/home/HowWeProtectYouSection";
+import EnterpriseGovernanceSection from "../components/home/EnterpriseGovernanceSection";
 import "./HomePage.scss";
-
-// Real extension listings (Chrome Web Store style). logoUrl set to null to avoid
-// failed requests to external logo APIs (e.g. Clearbit) which cause ERR_NAME_NOT_RESOLVED in console.
-const EXTENSION_CARDS = [
-  { id: "session-buddy", name: "Session Buddy – Tab & Bookmark Manager", stars: "★★★★★", rating: "4.7", users: "1,000,000 users", badge: "Featured", iconClass: "tabs", logoUrl: null, iconSvg: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M9 21V9" /></svg> },
-  { id: "hover-zoom", name: "Hover Zoom+", stars: "★★★★★", rating: "4.0", users: "300,000 users", badge: "Featured", iconClass: "zoom", logoUrl: null, iconSvg: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg> },
-  { id: "stylus", name: "Stylus", stars: "★★★★★", rating: "4.5", users: "900,000 users", badge: "Featured", iconClass: "stylus", logoUrl: null, iconSvg: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /></svg> },
-  { id: "adblock", name: "Adblock Plus – free ad blocker", stars: "★★★★★", rating: "4.4", users: "41,000,000 users", badge: "Featured", iconClass: "shield", logoUrl: null, iconSvg: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg> },
-  { id: "honey", name: "PayPal Honey: Automated Coupons & Cash Back", stars: "★★★★★", rating: "4.6", users: "14,000,000 users", badge: "Featured", iconClass: "honey", logoUrl: null, iconSvg: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2L20 7v10l-8 5-8-5V7l8-5z" /><path d="M12 8v8M10 11h4" /></svg> },
-  { id: "grammarly", name: "Grammarly: AI Writing Assistant and Grammar Checker App", stars: "★★★★★", rating: "4.5", users: "43,000,000 users", badge: "Featured", iconClass: "grammarly", logoUrl: null, iconSvg: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6" /><path d="M10 9h4M10 13h4M10 17h2" /></svg> },
-  { id: "hola", name: "Hola VPN – Your Website Unblocker", stars: "★★★★★", rating: "4.8", users: "5,000,000 users", badge: "Store listing", iconClass: "vpn", logoUrl: null, iconSvg: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10" /><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg> },
-  { id: "vdh", name: "Video DownloadHelper", stars: "★★★★★", rating: "4.4", users: "5,000,000 users", badge: "Featured", iconClass: "download", logoUrl: null, iconSvg: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polygon points="5 3 19 12 5 21 5 3" /><line x1="19" y1="5" x2="19" y2="19" /></svg> },
-];
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -31,7 +18,6 @@ const HomePage = () => {
   useAuth(); // Auth not required for scanning; used by other components (e.g. header)
   const [isVisible, setIsVisible] = useState(false);
   const [scanInput, setScanInput] = useState("");
-  const [revealedSections, setRevealedSections] = useState({});
   // Hero stat: real cumulative usage is 100+ (DB was reset, so live count would show lower). Animation runs immediately on load.
   const EXTENSIONS_DISPLAY_TARGET = 100;
   const [extensionsScannedCount] = useState(EXTENSIONS_DISPLAY_TARGET);
@@ -73,31 +59,6 @@ const HomePage = () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
   }, [extensionsScannedCount]);
-
-  // DB fetch disabled: hero stat is hardcoded to 100; re-enable when using live count again
-  // useEffect(() => { ... databaseService.getStatistics() ... setExtensionsScannedCount(count) ... }, []);
-
-  // Scroll reveal observer
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setRevealedSections((prev) => ({
-              ...prev,
-              [entry.target.id]: true,
-            }));
-          }
-        });
-      },
-      { threshold: 0.15, rootMargin: "0px 0px -50px 0px" }
-    );
-
-    const sections = document.querySelectorAll(".reveal-section");
-    sections.forEach((section) => observer.observe(section));
-
-    return () => observer.disconnect();
-  }, []);
 
   const scrollToProof = useCallback(() => {
     document.getElementById("proof")?.scrollIntoView({ behavior: "smooth" });
@@ -153,61 +114,14 @@ const HomePage = () => {
     "url": "https://extensionshield.com/scan"
   };
 
-  const faqSchema = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      {
-        "@type": "Question",
-        "name": "How does Chrome extension security scanning work?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "ExtensionShield analyzes Chrome extensions using static code analysis (SAST), permission analysis, and threat intelligence to generate a comprehensive risk score. We check for malware, privacy risks, and compliance issues."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "What is an extension risk score?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "The extension risk score is a numerical rating (0-100) that indicates the overall security risk of a Chrome extension. It's calculated based on code analysis, permission requests, and threat intelligence signals."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Can I scan extensions before installing them?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Yes! ExtensionShield allows you to scan any Chrome extension from the Chrome Web Store before installing it. Simply paste the extension URL or Chrome Web Store ID to get an instant security analysis."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "What permissions should I be concerned about?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Be cautious of extensions requesting broad permissions like 'Read and change all your data on all websites', 'Access your browsing history', or 'Manage your downloads'. Learn more about extension permissions in our glossary."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "How accurate is the extension security scanner?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "ExtensionShield uses multiple security analysis techniques including static code analysis, permission analysis, and threat intelligence from VirusTotal. Our methodology is transparent and documented in our research section."
-        }
-      }
-    ]
-  };
-
   return (
     <>
       <SEOHead
-        title="Chrome Extension Security Scanner | Browser Extension Security Scanner"
-        description="Free chrome extension security scanner: scan for malware, get a risk score, and audit extension security. Check if a Chrome extension is safe. Extension security analysis tool for privacy and compliance."
+        title="Is This Chrome Extension Safe? Scanner | ExtensionShield"
+        description="Chrome extension safety scanner: paste a Web Store link to see if it's safe—permissions, network domains, version changes, and a risk score with evidence."
         pathname="/"
         ogType="website"
-        schema={[organizationSchema, softwareAppSchema, faqSchema]}
+        schema={[organizationSchema, softwareAppSchema]}
       />
       
       <div className="home-page">
@@ -250,9 +164,6 @@ const HomePage = () => {
               <h1 className="hero-title">
                 Know what your Chrome extensions can access.
               </h1>
-              <p className="hero-subtitle">
-                Paste a Chrome Web Store URL — get a safety report in under 60 seconds.
-              </p>
 
               <div className="hero-search">
                 <div className="search-container">
@@ -549,6 +460,9 @@ const HomePage = () => {
           </div>
         </motion.div>
       </section>
+
+      {/* Extensions productivity + governance (two-column, policy flow) */}
+      <EnterpriseGovernanceSection reducedMotion={reducedMotion} />
       </div>
     </>
   );

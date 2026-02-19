@@ -10,7 +10,9 @@ const articleSchema = {
   "description": "Case study on malicious ad blocker extensions that inject ads instead of blocking them. 20M–80M+ users affected. Chrome extension security and enterprise risk.",
   "author": { "@type": "Organization", "name": "ExtensionShield" },
   "datePublished": "2025-02-01",
+  "dateModified": "2025-02-18",
   "publisher": { "@type": "Organization", "name": "ExtensionShield" },
+  "image": "https://extensionshield.com/og.png"
 };
 
 const FakeAdBlockersCaseStudyPage = () => {
@@ -132,6 +134,9 @@ const FakeAdBlockersCaseStudyPage = () => {
                 <path d="M5 12h14M12 5l7 7-7 7" />
               </svg>
             </Link>
+            <p className="honey-cta-secondary">
+              <Link to="/is-this-chrome-extension-safe">Learn how to check if an extension is safe</Link>
+            </p>
           </div>
         </div>
       </div>

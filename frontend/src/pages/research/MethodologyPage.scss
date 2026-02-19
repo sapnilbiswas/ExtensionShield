@@ -57,11 +57,6 @@
   }
 }
 
-/* Pipeline viz: see components/PipelineViz/PipelineViz.scss */
-.methodology-pipeline-viz {
-  margin-bottom: 4rem;
-}
-
 /* ============================================================================
    Methodology Divider
    ============================================================================ */
@@ -454,26 +449,37 @@
    CTA Section
    ============================================================================ */
 
-.methodology-cta {
-  margin-top: 4rem;
-  padding: 2.5rem;
-  background: var(--theme-bg-card);
-  border: 1px solid var(--theme-border);
-  border-radius: 16px;
-  text-align: center;
-  box-shadow: var(--theme-shadow-card);
-  
+.methodology-related {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--theme-border, rgba(148, 163, 184, 0.2));
+
   h3 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
     color: var(--theme-text-primary);
   }
-  
-  p {
-    font-size: 1rem;
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  li {
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
     color: var(--theme-text-secondary);
-    margin-bottom: 1.5rem;
+  }
+
+  a {
+    color: var(--atlas-accent, #22c55e);
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
   }
 }
 

@@ -2,17 +2,48 @@ import React from "react";
 import { Link } from "react-router-dom";
 import SEOHead from "../../components/SEOHead";
 import DonutScore from "../../components/report/DonutScore";
-import PipelineViz from "../../components/PipelineViz/PipelineViz";
 import { getBandFromScore } from "../../constants/riskBands";
 import "./MethodologyPage.scss";
+
+const methodologyFaqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How is the extension risk score calculated?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "ExtensionShield combines three pipelines: Security (40%), Privacy (35%), and Compliance (25%). Security uses open-source SAST (ThreatXtension/Semgrep), Privacy analyzes data collection and tracking, and Compliance covers policy alignment and developer reputation."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is ThreatXtension?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "ThreatXtension is an open-source Chrome extension security scanner we use for static analysis (SAST). It runs 47+ Semgrep rules to detect malicious patterns, obfuscation, and data exfiltration in extension code."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What does the aggregate risk score mean?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The overall score (0–100) is a weighted combination of Security, Privacy, and Compliance. Lower scores indicate higher risk. We show the breakdown so you can see which dimension drives the result."
+      }
+    }
+  ]
+};
 
 const MethodologyPage = () => {
   return (
     <>
       <SEOHead
-        title="How We Score: ExtensionShield Risk Analysis | ExtensionShield"
-        description="Learn how ExtensionShield analyzes Chrome extensions using three security pipelines: ThreatXtension open-source SAST, privacy analysis, and compliance monitoring."
+        title="Chrome Extension Risk Score & Security Analysis Methodology | ExtensionShield"
+        description="How we calculate chrome extension risk score: static analysis, threat intelligence, and extension security analysis. Transparent methodology for auditing chrome extension security."
         pathname="/research/methodology"
+        schema={methodologyFaqSchema}
       />
 
       <div className="methodology-page">
@@ -30,8 +61,6 @@ const MethodologyPage = () => {
               Three independent security pipelines combine to create comprehensive governance.
             </p>
           </header>
-
-          <PipelineViz className="methodology-pipeline-viz" />
 
           {/* Aggregate Score - Showing End Result First */}
           <div className="aggregate-card">
@@ -230,17 +259,15 @@ const MethodologyPage = () => {
             </div>
           </section>
 
-          {/* CTA */}
-          <div className="methodology-cta">
-            <h3>See the methodology in action</h3>
-            <p>Explore real-world case studies of malicious extensions caught by our pipelines.</p>
-            <Link to="/research/case-studies" className="cta-button">
-              View Case Studies
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M5 12h14M12 5l7 7-7 7" />
-              </svg>
-            </Link>
-          </div>
+          {/* Related reads */}
+          <section className="methodology-related" aria-label="Related reads">
+            <h3>Related</h3>
+            <ul>
+              <li><Link to="/scan">Scan an extension</Link> — Get a risk score in under a minute</li>
+              <li><Link to="/enterprise">Enterprise extension security</Link> — Governance and compliance at scale</li>
+              <li><Link to="/compare">Compare scanners</Link> — ExtensionShield vs CRXcavator and others</li>
+            </ul>
+          </section>
         </div>
       </div>
     </>

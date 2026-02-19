@@ -99,9 +99,9 @@
   --theme-bg-glass-strong: #2e2b28;
   --theme-bg-overlay: rgba(28, 26, 23, 0.97);
   
-  --theme-text-primary: #f5f3f0;
-  --theme-text-secondary: #b8b3ab;
-  --theme-text-muted: #9a958d;
+  --theme-text-primary: #ffffff;
+  --theme-text-secondary: #e8e6e3;
+  --theme-text-muted: #b8b3ab;
   --theme-text-subtle: #7a756d;
   
   --theme-accent: #22c55e;
@@ -187,9 +187,9 @@
   --atlas-orange: #f97316;
   --atlas-orange-glow: rgba(249, 115, 22, 0.4);
   --atlas-danger: var(--risk-bad);
-  --atlas-text-primary: #f5f3f0;
-  --atlas-text-secondary: #b8b3ab;
-  --atlas-text-muted: #9a958d;
+  --atlas-text-primary: #ffffff;
+  --atlas-text-secondary: #e8e6e3;
+  --atlas-text-muted: #b8b3ab;
   --atlas-border: rgba(180, 172, 157, 0.22);
   --atlas-border-accent: rgba(34, 197, 94, 0.35);
 }
@@ -206,6 +206,70 @@
   --color-surface-hover: 34 10% 20%;
   --color-card: 34 10% 16%;
   --color-input: 34 12% 14%;
+}
+
+/* ============================================================================
+   DARK MODE (default) – card/surface consistency across all routes
+   Same look as Enterprise page: theme backgrounds and borders everywhere.
+   ============================================================================ */
+:root:not(.light) .surface-card,
+:root:not(.light) .bridge-step,
+:root:not(.light) .deception-card,
+:root:not(.light) .pricing-card,
+:root:not(.light) .link-card,
+:root:not(.light) .contribution-card,
+:root:not(.light) .community-card,
+:root:not(.light) .blog-card,
+:root:not(.light) .finding-card,
+:root:not(.light) .case-study-card,
+:root:not(.light) .research-card,
+:root:not(.light) .enterprise-card,
+:root:not(.light) .enterprise-form,
+:root:not(.light) .highlight-tile,
+:root:not(.light) .methodology-info-box,
+:root:not(.light) .glossary-term,
+:root:not(.light) .extension-card,
+:root:not(.light) .idea-card,
+:root:not(.light) .summary-panel,
+:root:not(.light) .results-sidebar-tile,
+:root:not(.light) .login-overlay-content,
+:root:not(.light) .aggregate-card,
+:root:not(.light) .pipeline-card,
+:root:not(.light) .open-source-credit,
+:root:not(.light) .methodology-cta,
+:root:not(.light) .chart-card,
+:root:not(.light) .recommendation-card,
+:root:not(.light) .capability-card,
+:root:not(.light) .report-card,
+:root:not(.light) .glass-card,
+:root:not(.light) .karma-panel,
+:root:not(.light) .api-card {
+  background: var(--atlas-bg-card);
+  border: 1px solid var(--atlas-border);
+  box-shadow: var(--atlas-card-shadow);
+  color: var(--atlas-text-primary);
+}
+
+/* Dark: form fields (e.g. Enterprise, contact forms) inherit theme */
+:root:not(.light) .field input,
+:root:not(.light) .field textarea {
+  background: var(--atlas-bg-secondary);
+  border: 1px solid var(--atlas-border);
+  color: var(--atlas-text-primary);
+}
+
+:root:not(.light) .field input::placeholder,
+:root:not(.light) .field textarea::placeholder {
+  color: var(--atlas-text-muted);
+}
+
+/* Dark: headings and body text use theme primary for WCAG */
+:root:not(.light) h1,
+:root:not(.light) h2,
+:root:not(.light) .enterprise-header h1,
+:root:not(.light) .enterprise-card h2,
+:root:not(.light) .enterprise-form h2 {
+  color: var(--atlas-text-primary);
 }
 
 /* ============================================================================

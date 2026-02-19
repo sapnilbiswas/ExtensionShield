@@ -130,10 +130,11 @@ export const footerConfig = {
       label: "How We Score",
       path: "/research/methodology"
     },
-    {
-      label: "Compare Scanners",
-      path: "/compare"
-    },
+    // Compare Scanners - commented out for now, will come back to it
+    // {
+    //   label: "Compare Scanners",
+    //   path: "/compare"
+    // },
     {
       label: "Blog",
       path: "/blog"

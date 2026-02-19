@@ -234,18 +234,19 @@ body {
   }
 }
 
-/* Megamenu & nav dropdown - solid panel for clear contrast (accessible, no fade-in) */
+/* Megamenu & nav dropdown – theme vars for consistency across all routes */
 .megamenu-dropdown {
   position: absolute;
   top: calc(100% + 0.25rem);
   left: 0;
   width: 320px;
-  background: rgba(15, 23, 42, 0.97);
+  max-width: calc(100vw - 2rem);
+  background: var(--atlas-bg-card);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(148, 163, 184, 0.12);
+  border: 1px solid var(--atlas-border);
   border-radius: 12px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(148, 163, 184, 0.06);
+  box-shadow: var(--atlas-card-shadow);
   padding: 0.75rem;
   z-index: 1300;
   animation: megamenuEnter 0.2s ease;
@@ -266,28 +267,34 @@ body {
   }
 }
 
-/* Light mode - match header glass (same as header scrolled state) */
+/* Light mode – theme vars for consistency across all routes */
 .light .megamenu-dropdown,
 .light .nav-dropdown-menu {
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1), 0 0 1px rgba(0, 0, 0, 0.05);
+  background: var(--atlas-bg-card);
+  border: 1px solid var(--atlas-border);
+  box-shadow: var(--atlas-card-shadow);
 }
 
 .light .megamenu-item:hover,
 .light .nav-dropdown-item:hover {
-  background: rgba(0, 0, 0, 0.04);
-  border-color: rgba(0, 0, 0, 0.08);
+  background: var(--theme-hover-bg);
+  border-color: var(--atlas-border);
 }
 
 .light .megamenu-label,
 .light .nav-dropdown-label {
-  color: hsl(var(--color-foreground));
+  color: var(--atlas-text-primary);
 }
 
 .light .megamenu-desc,
 .light .nav-dropdown-desc {
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--atlas-text-secondary);
+}
+
+.light .megamenu-icon,
+.light .nav-dropdown-icon {
+  background: var(--atlas-bg-secondary);
+  border-color: var(--atlas-border);
 }
 
 /* Light mode - user menu dropdown match site theme */
@@ -367,28 +374,32 @@ body {
   transition: all 0.2s ease;
   border: 1px solid transparent;
   position: relative;
-  
+
   /* Add extra padding when upgrade badge or free badge is present */
   &:has(.upgrade-badge-top),
   &:has(.free-badge-top) {
     padding-right: 5rem;
   }
-  
+
   &:hover {
-    background: rgba(148, 163, 184, 0.08);
-    border-color: rgba(148, 163, 184, 0.15);
+    background: var(--theme-hover-bg);
+    border-color: var(--atlas-border);
     transform: translateX(4px);
   }
-  
+
   &.ai-item {
     cursor: pointer;
-    opacity: 0.8;
-    
+    opacity: 0.9;
+
     &:hover {
       opacity: 1;
-      background: rgba(34, 197, 94, 0.08);
-      border-color: rgba(34, 197, 94, 0.2);
+      background: var(--atlas-accent-subtle);
+      border-color: var(--atlas-border-accent);
     }
+  }
+
+  @media (max-width: 640px) {
+    padding: 0.75rem;
   }
 }
 
@@ -400,7 +411,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(148, 163, 184, 0.1);
+  background: var(--atlas-bg-secondary);
+  border: 1px solid var(--atlas-border);
   border-radius: 8px;
 }
 
@@ -503,12 +515,13 @@ body {
   top: calc(100% + 0.25rem);
   left: 0;
   min-width: 280px;
-  background: rgba(15, 23, 42, 0.97);
+  max-width: calc(100vw - 2rem);
+  background: var(--atlas-bg-card);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(148, 163, 184, 0.12);
+  border: 1px solid var(--atlas-border);
   border-radius: 12px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(148, 163, 184, 0.06);
+  box-shadow: var(--atlas-card-shadow);
   padding: 0.75rem;
   z-index: 1300;
   animation: megamenuEnter 0.2s ease;
@@ -528,11 +541,15 @@ body {
   color: var(--atlas-text-primary);
   transition: all 0.2s ease;
   border: 1px solid transparent;
-  
+
   &:hover {
-    background: rgba(148, 163, 184, 0.08);
-    border-color: rgba(148, 163, 184, 0.15);
+    background: var(--theme-hover-bg);
+    border-color: var(--atlas-border);
     transform: translateX(4px);
+  }
+
+  @media (max-width: 640px) {
+    padding: 0.75rem;
   }
 }
 
@@ -544,7 +561,10 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  
+  background: var(--atlas-bg-secondary);
+  border: 1px solid var(--atlas-border);
+  border-radius: 8px;
+
   svg {
     width: 32px;
     height: 32px;

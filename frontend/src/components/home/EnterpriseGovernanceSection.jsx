@@ -96,15 +96,10 @@ const EnterpriseGovernanceSection = ({ reducedMotion = false }) => {
               >
                 <Wrench className="enterprise-governance-bullet-icon" aria-hidden />
                 <div className="enterprise-governance-bullet__block">
-                  <p className="enterprise-governance-bullet__block-title">Custom extensions, without the risk</p>
+                  <p className="enterprise-governance-bullet__block-title">Custom extensions, without the risk.</p>
                   <p className="enterprise-governance-bullet__block-body">
-                    We build or harden internal extensions to meet policy: least-privilege permissions, signed builds, and update diff alerts.
+                    We build or harden internal extensions with minimal permissions, signed builds, and change alerts so you stay in policy.
                   </p>
-                  <ul className="enterprise-governance-bullet__block-list" aria-label="Features">
-                    <li>Permission minimization (MV3 best practices)</li>
-                    <li>Reproducible builds + signing</li>
-                    <li>Update diff alerts (permissions/domains/risk)</li>
-                  </ul>
                 </div>
               </motion.li>
             </ul>

@@ -1,14 +1,13 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
 import { Button } from "../../components/ui/button";
-import RocketGame from "../../components/RocketGame";
 import { useScan } from "../../context/ScanContext";
 import { EXTENSION_ICON_PLACEHOLDER, getExtensionIconUrl } from "../../utils/constants";
 import realScanService from "../../services/realScanService";
 import { getScanResultsRoute } from "../../utils/slug";
 import ScanHUD from "../../components/ScanHUD";
 import SEOHead from "../../components/SEOHead";
-import { normalizeExtensionId, isValidExtensionId, isUUID } from "../../utils/extensionId";
+import { normalizeExtensionId } from "../../utils/extensionId";
 import { logger } from "../../utils/logger";
 import {
   Dialog,
@@ -19,60 +18,6 @@ import {
   DialogTitle,
 } from "../../components/ui/dialog";
 import "./ScanProgressPage.scss";
-
-// Error Boundary for RocketGame
-class RocketGameErrorBoundary extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { hasError: false, error: null };
-  }
-
-  static getDerivedStateFromError(error) {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error, errorInfo) {
-    logger.error("RocketGame error:", error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'var(--theme-bg-primary)',
-          color: 'var(--theme-text-primary)',
-          flexDirection: 'column',
-          gap: '1rem',
-          zIndex: 1000
-        }}>
-          <div style={{ fontSize: '3rem' }}>⚠️</div>
-          <h2 style={{ fontSize: '1.5rem', margin: 0 }}>Game Failed to Load</h2>
-          <p style={{ color: 'var(--theme-text-secondary)', margin: 0 }}>
-            The game encountered an error, but scan polling continues.
-          </p>
-        </div>
-      );
-    }
-
-    return this.props.children;
-  }
-}
-
-const RocketGameWrapper = ({ onStatsUpdate }) => {
-  useEffect(() => {
-    if (import.meta.env.DEV) {
-      logger.log("[ScanProgressPage] RocketGame mounted");
-      return () => logger.log("[ScanProgressPage] RocketGame unmounting");
-    }
-  }, []);
-
-  return <RocketGame isActive onStatsUpdate={onStatsUpdate} />;
-};
 
 const ScanProgressPage = () => {
   const params = useParams();
@@ -114,11 +59,8 @@ const ScanProgressPage = () => {
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [gameStats, setGameStats] = useState({ score: 0, best: 0, time: 0 });
-  const [gameOver, setGameOver] = useState(false);
   const [scanProgress, setScanProgress] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
-  const [userChoseKeepPlaying, setUserChoseKeepPlaying] = useState(false);
   const completionShownRef = useRef(false);
   // Tracks whether any in-progress state was seen before completion.
   // If the first poll returns scanned=true, the extension was already scanned.
@@ -278,28 +220,17 @@ const ScanProgressPage = () => {
       setUserExited(false);
       setScanComplete(false);
       setAlreadyScanned(false);
-      setUserChoseKeepPlaying(false);
       completionShownRef.current = false;
       hasSeenInProgressRef.current = false;
     }
   }, [scanId]);
-  
-  // Stable callback for game stats — avoids re-creating the function on every render
-  // which would cause the RocketGame effect to restart the RAF loop.
-  const handleStatsUpdate = useCallback((stats) => {
-    setGameStats(stats);
-    if (stats.gameOver !== undefined) {
-      setGameOver(stats.gameOver);
-    }
-  }, []);
 
-  // Always show game when scanId exists in URL (unless user explicitly exited)
-  // This is the primary condition - if scanId exists, show the game
-  const shouldShowGame = scanId ? !userExited : false;
+  // Show loading screen when scanId exists in URL (unless user explicitly exited)
+  const shouldShowLoading = scanId ? !userExited : false;
 
-  // Handle errors with modal (don't close game)
+  // Handle errors with modal
   useEffect(() => {
-    if (error && shouldShowGame) {
+    if (error && shouldShowLoading) {
       // Check for API key errors (401) - show user-friendly message
       let displayError = error;
       if (error.includes("API key") || error.includes("Invalid API key") || error.includes("Authentication") || error.includes("401") || error.includes("sk-proj")) {
@@ -309,12 +240,12 @@ const ScanProgressPage = () => {
       setShowErrorModal(true);
       // Don't clear error - let user dismiss it
     }
-  }, [error, shouldShowGame]);
+  }, [error, shouldShowLoading]);
 
   // Catch any unhandled errors (parsing, network, etc.)
   useEffect(() => {
     const handleError = (event) => {
-      if (shouldShowGame) {
+      if (shouldShowLoading) {
         let errorMsg = "Something went wrong";
         
         // Handle different error types
@@ -344,7 +275,7 @@ const ScanProgressPage = () => {
     };
 
     const handleUnhandledRejection = (event) => {
-      if (shouldShowGame) {
+      if (shouldShowLoading) {
         let errorMsg = "Something went wrong";
         
         if (event.reason) {
@@ -383,7 +314,7 @@ const ScanProgressPage = () => {
       window.removeEventListener("error", handleError);
       window.removeEventListener("unhandledrejection", handleUnhandledRejection);
     };
-  }, [shouldShowGame]);
+  }, [shouldShowLoading]);
 
   const handleViewResults = useCallback(async () => {
     setUserExited(true);
@@ -413,11 +344,6 @@ const ScanProgressPage = () => {
     setErrorMessage("");
   }, [setError]);
 
-  const handleContinuePlaying = useCallback(() => {
-    setShowCompletionModal(false);
-    setUserChoseKeepPlaying(true);
-  }, []);
-
   // Always render something - never show blank page
   // Show error if normalized ID is empty (invalid format or missing)
   if (!scanId) {
@@ -444,10 +370,7 @@ const ScanProgressPage = () => {
     );
   }
 
-  // When scanId exists, always show the game screen (unless user explicitly exited)
-  // This ensures the game shows immediately when navigating to this route
-  // Use the same logic as shouldShowGame for consistency
-  const showGameScreen = shouldShowGame;
+  const showLoadingScreen = shouldShowLoading;
 
   return (
     <>
@@ -458,25 +381,22 @@ const ScanProgressPage = () => {
         noindex
       />
       <div className="scan-progress-page">
-      {showGameScreen ? (
+      {showLoadingScreen ? (
         <>
-          {/* Retro Style Header Overlay */}
-          <div className="retro-header-overlay">
-            <h1 className="retro-title">
-              <span className="retro-text">
-                {scanComplete
-                  ? (alreadyScanned
-                      ? "RESULTS READY — Previously Scanned"
-                      : "SCAN COMPLETE")
-                  : "Scan in progress — game mode."}
-              </span>
+          {/* Header overlay */}
+          <div className="scan-progress-header">
+            <h1 className="scan-progress-title">
+              {scanComplete
+                ? (alreadyScanned
+                    ? "Results ready"
+                    : "Scan complete")
+                : "Scan in progress"}
             </h1>
-            {/* Exit button appears when scan is complete, but hidden if user chose to keep playing */}
-            {scanComplete && !userChoseKeepPlaying && (
-              <div className="retro-exit-container">
+            {scanComplete && (
+              <div className="scan-progress-actions">
                 <Button
                   onClick={handleViewResults}
-                  className="retro-exit-button"
+                  className="scan-progress-view-results"
                   variant="default"
                   size="lg"
                 >
@@ -486,11 +406,17 @@ const ScanProgressPage = () => {
             )}
           </div>
 
-          {/* Full Viewport Game Container */}
-          <div className="game-container-fullscreen">
-            <RocketGameErrorBoundary>
-              <RocketGameWrapper onStatsUpdate={handleStatsUpdate} />
-            </RocketGameErrorBoundary>
+          {/* Minimal loading screen: spinning gear + agents investigating */}
+          <div className="scan-loading-screen">
+            <div className="scan-loading-gear" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+            </div>
+            <p className="scan-loading-text">
+              {scanComplete ? "Report ready." : "Agents are investigating the files."}
+            </p>
           </div>
 
           {/* Scan HUD */}
@@ -500,15 +426,13 @@ const ScanProgressPage = () => {
             extensionId={scanId}
             scanStage={scanStage}
             scanProgress={alreadyScanned ? 100 : scanProgress}
-            gameStats={gameStats}
             onViewFindings={handleViewResults}
             isMobile={isMobile}
-            gameOver={gameOver}
             scanComplete={scanComplete}
             alreadyScanned={alreadyScanned}
           />
 
-          {/* Error Modal - doesn't close game */}
+          {/* Error Modal */}
           <Dialog open={showErrorModal} onOpenChange={setShowErrorModal}>
             <DialogContent className="error-modal-content">
               <DialogHeader>
@@ -516,12 +440,12 @@ const ScanProgressPage = () => {
                   Something Went Wrong
                 </DialogTitle>
                 <DialogDescription className="error-modal-description">
-                  {errorMessage || "An error occurred, but you can continue playing the game."}
+                  {errorMessage || "An error occurred. You can try again or go back to the scanner."}
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
                 <Button onClick={handleDismissError} variant="default">
-                  Continue Playing
+                  Dismiss
                 </Button>
                 <Button onClick={() => navigate("/scan")} variant="outline">
                   Go to Scanner
@@ -535,18 +459,15 @@ const ScanProgressPage = () => {
             <DialogContent className="completion-modal-content">
               <DialogHeader>
                 <DialogTitle className="completion-modal-title">
-                  {alreadyScanned ? "Results Available" : "Scan Complete!"}
+                  {alreadyScanned ? "Results Available" : "Scan Complete"}
                 </DialogTitle>
                 <DialogDescription className="completion-modal-description">
                   {alreadyScanned
                     ? "This extension was previously scanned. Your report is ready to view."
-                    : "Your extension scan has finished successfully. You can continue playing the game or view the results now."}
+                    : "Your extension scan has finished. View the results below."}
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
-                <Button onClick={handleContinuePlaying} variant="outline">
-                  Keep Playing
-                </Button>
                 <Button onClick={handleViewResults} variant="default">
                   View Results
                 </Button>
@@ -598,7 +519,7 @@ const ScanProgressPage = () => {
           )}
 
           {/* No Active Scan State */}
-          {!shouldShowGame && !error && (
+          {!shouldShowLoading && !error && (
             <div className="no-scan-state">
               <div className="no-scan-icon">🔍</div>
               <h2>No Active Scan</h2>

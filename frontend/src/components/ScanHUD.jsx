@@ -26,19 +26,15 @@ const ScanHUD = ({
   extensionId,
   scanStage,
   scanProgress = 0,
-  gameStats = { score: 0, best: 0, time: 0 },
   onViewFindings,
   isMobile = false,
-  gameOver = false,
   scanComplete = false,
   alreadyScanned = false,
 }) => {
   const [copied, setCopied] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false); // Collapsed by default
   const [showCursor, setShowCursor] = useState(true); // For blinking cursor
-  
-  // Check if overlay is visible (only game over, not scan complete - allow interaction after scan completes)
-  const hasOverlay = gameOver;
+  const hasOverlay = false;
 
   const handleCopyId = async () => {
     try {
@@ -72,13 +68,6 @@ const ScanHUD = ({
     }, 530);
     return () => clearInterval(interval);
   }, []);
-
-  // Format time (seconds to MM:SS)
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
 
   // Get current stage label with blinking cursor
   const getStageLabel = () => {
@@ -154,27 +143,6 @@ const ScanHUD = ({
         </div>
       </div>
 
-      {/* Game Stats */}
-      <div className="scan-hud-section">
-        <div className="scan-hud-section-title">Game Stats</div>
-        <div className="scan-hud-stats-grid">
-          <div className="scan-hud-stat">
-            <div className="scan-hud-stat-label">Score</div>
-            <div className="scan-hud-stat-value">{Math.floor(gameStats.score || 0)}</div>
-          </div>
-          <div className="scan-hud-stat">
-            <div className="scan-hud-stat-label">Best</div>
-            <div className="scan-hud-stat-value">{Math.floor(gameStats.best || 0)}</div>
-          </div>
-          <div className="scan-hud-stat">
-            <div className="scan-hud-stat-label">Time</div>
-            <div className="scan-hud-stat-value">
-              {formatTime(gameStats.time || 0)}
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Actions */}
       <div className="scan-hud-section scan-hud-actions">
         {scanComplete ? (
@@ -219,9 +187,6 @@ const ScanHUD = ({
         <span className="scan-hud-collapsed-percentage scan-hud-terminal-text">
           {Math.round(progressPercentage)}%
         </span>
-      </div>
-      <div className="scan-hud-collapsed-score scan-hud-terminal-text">
-        {Math.floor(gameStats.score || 0)}
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ import { useAuth } from "../context/AuthContext";
 import SEOHead from "../components/SEOHead";
 import { HeroOrbitalCarousel } from "../components/hero";
 import DemoModal from "../components/DemoModal";
+import UploadModal from "../components/UploadModal";
 import DevOpenCoreSection from "../components/home/DevOpenCoreSection";
 import HowWeProtectYouSection from "../components/home/HowWeProtectYouSection";
 import "./HomePage.scss";
@@ -24,8 +25,10 @@ const HomePage = () => {
   const displayCountRef = useRef(0);
   const rafRef = useRef(null);
   const [demoModalOpen, setDemoModalOpen] = useState(false);
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const demoTriggerRef = useRef(null);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [heroAudience, setHeroAudience] = useState("users"); // "users" | "developers"
 
   // Animate display count from current to target (incremental counter effect)
   useEffect(() => {
@@ -108,7 +111,7 @@ const HomePage = () => {
       { "@type": "Offer", "price": "0", "priceCurrency": "USD", "description": "Free public extension scan by URL or ID" },
       { "@type": "Offer", "description": "Pro: private CRX/ZIP security audit and vulnerability scan" }
     ],
-    "description": "Chrome extension security scanner. Scan by URL/ID for free. Upload private CRX/ZIP (Pro) for pre-release security audit, vulnerability scanning, and fix suggestions.",
+    "description": "Chrome extension security scanner. Scan by URL/ID for free. Upload private CRX/ZIP for pre-release security audit, vulnerability scanning, and fix suggestions.",
     "url": "https://extensionshield.com/scan"
   };
 
@@ -119,7 +122,7 @@ const HomePage = () => {
       {
         "@type": "Question",
         "name": "Can I scan a private CRX/ZIP?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Yes. Pro users can upload a private CRX or ZIP build for a pre-release security audit. Sign in and go to Upload CRX/ZIP (Pro) from the Scan menu." }
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. Pro users can upload a private CRX or ZIP build for a pre-release security audit. Sign in and go to Upload CRX/ZIP from the Scan menu." }
       },
       {
         "@type": "Question",
@@ -158,12 +161,12 @@ const HomePage = () => {
         {/* Hero Section - Two-column layout with frosted glass scan preview */}
         <section
           className="hero-section"
-          aria-label="Chrome Extension Scanner"
+          aria-label="Chrome Extension Security Gate"
         >
           {/* Mobile/tablet: scanner not supported — show idea + Watch demo + Check on desktop */}
           <div className="hero-mobile-message">
-            <p className="hero-tagline">Chrome Extension Scanner</p>
-            <h1 className="hero-title">Know what your Chrome extensions can access.</h1>
+            <p className="hero-tagline">CHROME EXTENSION SECURITY GATE</p>
+            <h1 className="hero-title">Ship safer Chrome extensions.</h1>
             <button
               type="button"
               className="hero-mobile-demo-btn"
@@ -190,72 +193,103 @@ const HomePage = () => {
               animate={isVisible ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             >
-              <p className="hero-tagline">Chrome Extension Scanner</p>
-              <h1 className="hero-title">
-                Know what your Chrome extensions can access.
-              </h1>
-
-              <div className="hero-search">
-                <div className="search-container">
-                  <span className="search-icon search-icon-chrome" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="chrome-logo">
-                      <path d="M12 12L22 12A10 10 0 0 1 7 3.34L12 12Z" fill="#4285F4" />
-                      <path d="M12 12L7 3.34A10 10 0 0 1 7 20.66L12 12Z" fill="#EA4335" />
-                      <path d="M12 12L7 20.66A10 10 0 0 1 22 12L12 12Z" fill="#FBBC05" />
-                      <circle cx="12" cy="12" r="4" fill="#34A853" />
-                      <circle cx="12" cy="12" r="2.5" fill="white" />
-                    </svg>
-                  </span>
-                  <input
-                    type="text"
-                    id="hero-scan-input"
-                    placeholder="Paste Chrome Web Store URL or Extension ID"
-                    value={scanInput}
-                    onChange={(e) => setScanInput(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleScan()}
-                    aria-label="Chrome Web Store URL or Extension ID"
-                    autoComplete="url"
-                  />
-                  <motion.button
-                    type="button"
-                    className="search-btn search-btn-icon"
-                    onClick={handleScan}
-                    aria-label="Scan extension"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                      <circle cx="11" cy="11" r="8" />
-                      <path d="M21 21l-4.35-4.35" />
-                    </svg>
-                  </motion.button>
-                </div>
-                <p className="hero-scan-info">
-                  <svg className="hero-scan-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                    <path d="M20 6L9 17l-5-5" />
-                  </svg>
-                  Checks permissions, network access, version history, and known threats.
-                </p>
-                {scanError && <p className="scan-error-hint">{scanError}</p>}
-              </div>
-
-              <div className="hero-cta-row">
+              <div className="hero-audience-toggle" role="group" aria-label="Audience">
                 <button
                   type="button"
-                  ref={demoTriggerRef}
-                  className="hero-demo-link"
-                  title="Copy extension URL → paste here (step-by-step)"
-                  onClick={() => setDemoModalOpen(true)}
+                  className={`hero-toggle-option ${heroAudience === "users" ? "active" : ""}`}
+                  onClick={() => setHeroAudience("users")}
+                  aria-pressed={heroAudience === "users"}
                 >
-                  <span className="hero-demo-icon" aria-hidden>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10" />
-                      <polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none" />
-                    </svg>
-                  </span>
-                  <span>Watch demo</span>
+                  Users (Free scan)
+                </button>
+                <button
+                  type="button"
+                  className={`hero-toggle-option ${heroAudience === "developers" ? "active" : ""}`}
+                  onClick={() => setHeroAudience("developers")}
+                  aria-pressed={heroAudience === "developers"}
+                >
+                  Developers (Pro build audit)
                 </button>
               </div>
+
+              {heroAudience === "users" ? (
+              <>
+                <p className="hero-tagline">Chrome Extension Scanner</p>
+                <h1 className="hero-title">
+                  Know what your Chrome extensions can access.
+                </h1>
+                <div className="hero-search">
+                  <div className="search-container">
+                    <span className="search-icon search-icon-chrome" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="chrome-logo">
+                        <path d="M12 12L22 12A10 10 0 0 1 7 3.34L12 12Z" fill="#4285F4" />
+                        <path d="M12 12L7 3.34A10 10 0 0 1 7 20.66L12 12Z" fill="#EA4335" />
+                        <path d="M12 12L7 20.66A10 10 0 0 1 22 12L12 12Z" fill="#FBBC05" />
+                        <circle cx="12" cy="12" r="4" fill="#34A853" />
+                        <circle cx="12" cy="12" r="2.5" fill="white" />
+                      </svg>
+                    </span>
+                    <input
+                      type="text"
+                      id="hero-scan-input"
+                      placeholder="Paste Chrome Web Store URL or Extension ID"
+                      value={scanInput}
+                      onChange={(e) => setScanInput(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleScan()}
+                      aria-label="Chrome Web Store URL or Extension ID"
+                      autoComplete="url"
+                    />
+                    <motion.button
+                      type="button"
+                      className="search-btn search-btn-icon"
+                      onClick={handleScan}
+                      aria-label="Scan extension"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="M21 21l-4.35-4.35" />
+                      </svg>
+                    </motion.button>
+                  </div>
+                  <p className="hero-scan-info">
+                    <svg className="hero-scan-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                      <path d="M20 6L9 17l-5-5" />
+                    </svg>
+                    Checks permissions, network access, version history, and known threats.
+                  </p>
+                  {scanError && <p className="scan-error-hint">{scanError}</p>}
+                </div>
+              </>
+              ) : (
+              <>
+                <p className="hero-tagline">Private Build Audit</p>
+                <h1 className="hero-title">
+                  Catch risky code <br /> before you ship.
+                </h1>
+                <p className="hero-dev-body">
+                  Upload a private CRX/ZIP build for an evidence-backed <br /> security review and fix suggestions.
+                </p>
+                <p className="hero-dev-helper">Private by default — share only if you choose.</p>
+                <div className="hero-developers-cta">
+                  <button
+                    type="button"
+                    className="hero-pro-upload-btn"
+                    onClick={() => setUploadModalOpen(true)}
+                  >
+                    <span className="hero-pro-upload-btn-icon" aria-hidden>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="17 8 12 3 7 8" />
+                        <line x1="12" y1="3" x2="12" y2="15" />
+                      </svg>
+                    </span>
+                    <span>Upload CRX/ZIP</span>
+                  </button>
+                </div>
+              </>
+              )}
             </motion.div>
 
             {/* Right Panel - 3D orbital carousel with focus report card */}
@@ -326,6 +360,10 @@ const HomePage = () => {
             isOpen={demoModalOpen}
             onClose={() => setDemoModalOpen(false)}
             triggerRef={demoTriggerRef}
+          />
+          <UploadModal
+            isOpen={uploadModalOpen}
+            onClose={() => setUploadModalOpen(false)}
           />
         </section>
 

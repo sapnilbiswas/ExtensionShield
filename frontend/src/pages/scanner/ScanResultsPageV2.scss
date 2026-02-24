@@ -48,7 +48,7 @@
   box-sizing: border-box;
 }
 
-/* Back button — pill style (theme-aware) */
+/* Back button — pill style (theme-aware), centered, ellipsis, hover */
 .nav-back {
   display: inline-flex;
   align-items: center;
@@ -62,10 +62,14 @@
   font-weight: 500;
   text-decoration: none;
   transition: all 0.2s ease;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 
   &:hover {
     border-color: var(--theme-border-accent);
-    color: var(--theme-text-primary);
+    color: var(--theme-accent);
     background: var(--theme-accent-subtle);
   }
 

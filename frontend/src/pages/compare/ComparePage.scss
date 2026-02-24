@@ -11,12 +11,11 @@
   max-width: 720px;
   margin: 0 auto;
   padding: 2rem 1.5rem 4rem;
+  text-align: center;
 }
 
 .compare-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
+  display: inline-block;
   background: none;
   border: none;
   color: var(--theme-text-secondary);
@@ -24,12 +23,16 @@
   cursor: pointer;
   margin-bottom: 1.5rem;
   padding: 0.25rem 0;
-  transition: color 0.15s ease;
+  transition: color 0.2s ease;
   font-family: inherit;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .compare-back:hover {
-  color: var(--theme-text-primary);
+  color: var(--theme-accent);
 }
 
 /* Breadcrumb (used by hub and other landing pages that import this file) */

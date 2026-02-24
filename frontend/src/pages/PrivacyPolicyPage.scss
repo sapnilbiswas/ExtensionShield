@@ -35,22 +35,24 @@
 }
 
 .privacy-policy-page .back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
+  display: inline-block;
   color: var(--atlas-text-secondary, #94a3b8);
   text-decoration: none;
   font-size: 0.9375rem;
-  margin-bottom: 1.5rem;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   
   &:hover {
-    color: var(--atlas-accent, #22c55e);
+    color: var(--theme-accent, #22c55e);
   }
   
   svg {
     width: 1rem;
     height: 1rem;
+    vertical-align: middle;
   }
 }
 

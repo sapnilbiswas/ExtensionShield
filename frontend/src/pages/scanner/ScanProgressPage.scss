@@ -474,6 +474,7 @@
 /* Header */
 .progress-header {
   margin-bottom: 3rem;
+  text-align: center;
 }
 
 .extension-header {
@@ -698,18 +699,20 @@
 }
 
 .back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
+  display: inline-block;
   color: hsl(var(--color-foreground-muted));
   text-decoration: none;
   font-size: 0.875rem;
   margin-bottom: 1.5rem;
   transition: color 0.2s ease;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .back-link:hover {
-  color: hsl(var(--color-primary));
+  color: var(--theme-accent, hsl(var(--color-primary)));
 }
 
 .progress-title {

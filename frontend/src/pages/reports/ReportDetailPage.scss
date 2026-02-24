@@ -131,9 +131,13 @@
   text-decoration: none;
   font-size: 0.875rem;
   transition: color 0.2s ease;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 
   &:hover {
-    color: #22c55e;
+    color: var(--theme-accent, #22c55e);
   }
 }
 

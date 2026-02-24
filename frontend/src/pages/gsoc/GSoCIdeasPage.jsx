@@ -119,7 +119,7 @@ const GSoCIdeasPage = () => {
               <Link to="/contribute" className="cta-button primary">
                 Contributor Guide
               </Link>
-              <Link to="/gsoc/community" className="cta-button secondary">
+              <Link to="/community" className="cta-button secondary">
                 Join Community
               </Link>
             </div>

@@ -88,17 +88,17 @@ function LeadershipDashboard({ limit = 10 }) {
   return (
     <div className="leadership-dashboard">
       <div className="dashboard-header">
-        <h2>Community Leaders</h2>
-        <p className="dashboard-subtitle">Top contributors this period</p>
+        <h2>Leaderboard</h2>
+        <p className="dashboard-subtitle">Ranked by karma</p>
       </div>
 
-      {loading && <div className="loading-state">Loading leaders...</div>}
+      {loading && <div className="loading-state">Loading…</div>}
 
       {error && <div className="error-state">Error: {error}</div>}
 
       {!loading && !error && leaders.length === 0 && (
         <div className="empty-state">
-          <p>No contributors yet. Be the first to join!</p>
+          <p>No one on the board yet. Scan extensions and contribute to get listed.</p>
         </div>
       )}
 

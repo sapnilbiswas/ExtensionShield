@@ -27,10 +27,9 @@ const BenchmarksPage = React.lazy(() => import("../pages/research/BenchmarksPage
 // GSoC / Open Source Pages
 const GSoCIdeasPage = React.lazy(() => import("../pages/gsoc/GSoCIdeasPage"));
 const ContributePage = React.lazy(() => import("../pages/gsoc/ContributePage"));
-const CommunityPage = React.lazy(() => import("../pages/gsoc/CommunityPage"));
-const BlogPage = React.lazy(() => import("../pages/gsoc/BlogPage"));
-const OpenSourcePage = React.lazy(() => import("../pages/open-source/OpenSourcePage"));
 const CommunityLandingPage = React.lazy(() => import("../pages/community/CommunityLandingPage"));
+const OpenSourcePage = React.lazy(() => import("../pages/open-source/OpenSourcePage"));
+const OpenSourceProgramsPage = React.lazy(() => import("../pages/open-source/OpenSourceProgramsPage"));
 const AboutUsPage = React.lazy(() => import("../pages/AboutUsPage"));
 
 // Compare pages (SEO: best scanner, CRXcavator alternatives)
@@ -397,6 +396,17 @@ export const routes = [
     changefreq: "monthly"
   },
   {
+    path: "/open-source/programs",
+    element: <OpenSourceProgramsPage />,
+    seo: {
+      title: "Open Source Programs | ExtensionShield",
+      description: "Open source programs ExtensionShield has applied to: Google Summer of Code and more. Explore project ideas and contribution opportunities.",
+      canonical: "/open-source/programs"
+    },
+    priority: 0.7,
+    changefreq: "monthly"
+  },
+  {
     path: "/open-source",
     element: <OpenSourcePage />,
     seo: {
@@ -446,27 +456,8 @@ export const routes = [
   },
   {
     path: "/gsoc/community",
-    element: <CommunityPage />,
-    seo: {
-      title: "Join the Community | ExtensionShield",
-      description: "Join the ExtensionShield community: Discord, GitHub Discussions, and more.",
-      canonical: "/gsoc/community"
-    },
-    priority: 0.5,
-    changefreq: "monthly"
+    element: <Navigate to="/community" replace />
   },
-  {
-    path: "/gsoc/blog",
-    element: <BlogPage />,
-    seo: {
-      title: "Chrome Extension Security Blog | How to Audit & Check Extension Safety",
-      description: "How to check chrome extension permissions safely, detect malicious chrome extensions, and audit a chrome extension before installing. Extension security research and guides.",
-      canonical: "/gsoc/blog"
-    },
-    priority: 0.5,
-    changefreq: "weekly"
-  },
-
   // ============ REPORTS ============
   {
     path: "/reports",

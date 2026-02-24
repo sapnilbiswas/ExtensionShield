@@ -42,7 +42,7 @@ export const topNavItems = [
     category: NAV_CATEGORIES.RESEARCH,
     label: "Research",
     path: "/research",
-    matchPaths: ["/research", "/compare", "/open-source", "/community", "/about", "/blog", "/contribute"],
+    matchPaths: ["/research", "/compare", "/open-source", "/community", "/about", "/blog"],
     dropdownSections: [
       {
         heading: "Research",
@@ -59,7 +59,6 @@ export const topNavItems = [
           { icon: "🌱", label: "Open Source", description: "Contribute & explore", path: "/open-source" },
           { icon: "💬", label: "Community", description: "Safety notes & alternatives", path: "/community" },
           { icon: "📝", label: "Blog", description: "Security guides & updates", path: "/blog" },
-          { icon: "🤝", label: "Contribute", description: "How to contribute", path: "/contribute" },
           { icon: "👤", label: "About", description: "Founder's story", path: "/about" }
         ]
       }
@@ -173,6 +172,8 @@ export const footerConfig = {
       heading: "Legal & Community",
       links: [
         { label: "Privacy Policy", path: "/privacy-policy" },
+        { label: "Community", path: "/community" },
+        { label: "Discord", href: "https://discord.gg/5PFWBGp4", external: true },
         { label: "GitHub", href: "https://github.com/Stanzin7/ExtensionScanner", external: true }
       ]
     }

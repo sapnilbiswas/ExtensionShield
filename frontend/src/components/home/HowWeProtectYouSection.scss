@@ -307,10 +307,15 @@
   margin: 1.25rem 0 0;
   padding: 0;
   font-size: 0.8125rem;
-  color: var(--atlas-text-muted);
+  /* Explicit opaque color so inherited transparent color cannot make text invisible (WCAG) */
+  color: var(--atlas-text-secondary) !important;
   text-align: center;
   line-height: 1.45;
   overflow-wrap: break-word;
+}
+
+.light .how-protect-footnote {
+  color: var(--atlas-text-secondary, rgb(47 44 37)) !important;
 }
 
 /* Light theme */

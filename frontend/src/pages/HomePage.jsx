@@ -259,6 +259,21 @@ const HomePage = () => {
                     </svg>
                     Checks permissions, network access, version history, and known threats.
                   </p>
+                  <button
+                    type="button"
+                    ref={demoTriggerRef}
+                    className="scanner-demo-link"
+                    title="See how to scan an extension step-by-step"
+                    onClick={() => setDemoModalOpen(true)}
+                  >
+                    <span className="scanner-demo-icon" aria-hidden>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none" />
+                      </svg>
+                    </span>
+                    <span>Watch demo</span>
+                  </button>
                   {scanError && <p className="scan-error-hint">{scanError}</p>}
                 </div>
               </>

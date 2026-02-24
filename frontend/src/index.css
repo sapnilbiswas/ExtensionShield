@@ -180,6 +180,8 @@
   --atlas-card-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
   --atlas-accent: #22c55e;
   --atlas-accent-hover: #16a34a;
+  /* Primary CTA background: WCAG AA with white text (dark mode) */
+  --atlas-accent-cta: #16a34a;
   --atlas-accent-glow: rgba(34, 197, 94, 0.25);
   --atlas-accent-subtle: rgba(34, 197, 94, 0.14);
   --atlas-purple: #8b5cf6;
@@ -384,6 +386,8 @@
   --atlas-card-shadow: 0 4px 20px rgba(36, 34, 30, 0.08), 0 0 0 1px rgba(73, 70, 63, 0.12);
   --atlas-accent: #15803d;
   --atlas-accent-hover: #166534;
+  /* Primary CTA: same as accent in light (WCAG AA with white text) */
+  --atlas-accent-cta: var(--atlas-accent);
   --atlas-accent-subtle: rgba(21, 128, 61, 0.12);
   --atlas-accent-glow: rgba(21, 128, 61, 0.25);
   --atlas-cta-rust: var(--color__rust);

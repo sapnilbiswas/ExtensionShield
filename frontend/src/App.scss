@@ -124,8 +124,8 @@ body {
 
 .light .action-signin {
   color: #fff;
-  background: var(--atlas-accent);
-  border-color: var(--atlas-accent);
+  background: var(--atlas-accent-cta, var(--atlas-accent));
+  border-color: var(--atlas-accent-cta, var(--atlas-accent));
 
   &:hover {
     background: var(--atlas-accent-hover);
@@ -737,19 +737,19 @@ body {
   padding: 0.5rem 1.25rem;
   font-size: 0.9375rem;
   font-weight: 500;
-  color: var(--atlas-text-primary);
+  color: #fff;
   text-decoration: none;
-  background: transparent;
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: var(--atlas-accent-cta, var(--atlas-accent));
+  border: 1px solid var(--atlas-accent-cta, var(--atlas-accent));
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
   font-family: inherit;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(148, 163, 184, 0.4);
-    color: var(--atlas-text-primary);
+    background: var(--atlas-accent-hover);
+    border-color: var(--atlas-accent-hover);
+    color: #fff;
   }
 }
 

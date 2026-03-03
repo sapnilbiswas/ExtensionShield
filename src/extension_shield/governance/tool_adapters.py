@@ -21,7 +21,7 @@ Evidence Rule:
 import hashlib
 import logging
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional, Tuple
 
 from .signal_pack import (
@@ -316,7 +316,7 @@ class VirusTotalAdapter(BaseToolAdapter):
             ratios=ratios,
             files_analyzed=files_analyzed,
             enabled=True,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
         )
         
         logger.info(

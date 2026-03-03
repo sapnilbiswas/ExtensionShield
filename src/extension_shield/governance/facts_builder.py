@@ -17,7 +17,7 @@ Output: facts.json - The canonical contract between security analysis
 import hashlib
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 
@@ -121,7 +121,7 @@ class FactsBuilder:
             scan_id=self.scan_id,
             extension_id=extension_id,
             artifact_hash=artifact_hash,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
             manifest=manifest_facts,
             host_access_patterns=host_access_patterns,
             file_inventory=file_inventory,

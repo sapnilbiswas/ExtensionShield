@@ -15,7 +15,7 @@ import hashlib
 import json
 import logging
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple
 
@@ -247,7 +247,7 @@ class StoreListingExtractor:
             extraction=ExtractionStatus(
                 status="ok",
                 reason="Successfully extracted from Chrome Web Store",
-                extracted_at=datetime.utcnow(),
+                extracted_at=datetime.now(timezone.utc),
             ),
             declared_data_categories=data_categories,
             declared_purposes=purposes,
@@ -467,7 +467,7 @@ class StoreListingExtractor:
                 extraction=ExtractionStatus(
                     status="ok",
                     reason="Extracted via fallback method",
-                    extracted_at=datetime.utcnow(),
+                    extracted_at=datetime.now(timezone.utc),
                 ),
                 declared_data_categories=data_categories,
                 declared_purposes=purposes,
@@ -486,7 +486,7 @@ class StoreListingExtractor:
             extraction=ExtractionStatus(
                 status="skipped",
                 reason=reason,
-                extracted_at=datetime.utcnow(),
+                extracted_at=datetime.now(timezone.utc),
             ),
             declared_data_categories=[],
             declared_purposes=[],
@@ -501,7 +501,7 @@ class StoreListingExtractor:
             extraction=ExtractionStatus(
                 status="failed",
                 reason=reason,
-                extracted_at=datetime.utcnow(),
+                extracted_at=datetime.now(timezone.utc),
             ),
             declared_data_categories=[],
             declared_purposes=[],

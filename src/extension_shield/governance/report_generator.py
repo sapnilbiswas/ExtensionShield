@@ -14,7 +14,7 @@ Output: report.json (and optionally report.html)
 
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 
@@ -101,7 +101,7 @@ class ReportGenerator:
             scan_id=scan_id,
             extension_id=extension_id,
             extension_name=extension_name,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
             decision=decision,
             rule_results=rule_results.rule_results,
             total_rules_evaluated=stats["total"],

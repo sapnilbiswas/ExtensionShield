@@ -10,7 +10,7 @@ import os
 import logging
 import requests
 from typing import Dict, Optional, List, Any
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 
 from extension_shield.core.analyzers import BaseAnalyzer
@@ -501,7 +501,7 @@ class ChromeStatsAnalyzer(BaseAnalyzer):
             'developer_reputation': developer_analysis,
             'geographic_distribution': geo_analysis,
             'similar_extensions': similar_analysis,
-            'analyzed_at': datetime.utcnow().isoformat(),
+            'analyzed_at': datetime.now(timezone.utc).isoformat(),
         }
 
 # Made with Bob

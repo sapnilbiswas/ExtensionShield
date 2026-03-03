@@ -12,7 +12,7 @@ The Rules Engine is:
 
 import logging
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional, Literal
 from pathlib import Path
 
@@ -499,5 +499,5 @@ class RulesEngine:
             citations=rule.get("citations", []),
             explanation=explanation,
             recommended_action=rule.get("recommended_action", ""),
-            triggered_at=datetime.utcnow(),
+            triggered_at=datetime.now(timezone.utc),
         )

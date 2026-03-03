@@ -5,7 +5,7 @@ Pydantic models for all governance pipeline JSON outputs.
 These schemas define the canonical data contracts between pipeline stages.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any, Literal
 from pydantic import BaseModel, Field
 
@@ -175,7 +175,7 @@ class Facts(BaseModel):
     artifact_hash: Optional[str] = Field(default=None, description="SHA256 hash of the extension artifact")
     
     # Timestamps
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     # Normalized manifest
     manifest: ManifestFacts = Field(description="Normalized manifest data")
@@ -228,7 +228,7 @@ class EvidenceItem(BaseModel):
     snippet: Optional[str] = Field(default=None, description="Code snippet (small)")
     provenance: str = Field(description="How this evidence was discovered")
     version: Optional[int] = Field(default=1, description="Evidence version for cache stability")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class EvidenceIndex(BaseModel):
@@ -282,7 +282,7 @@ class ExtractionStatus(BaseModel):
     
     status: Literal["ok", "skipped", "failed"] = Field(description="Extraction outcome")
     reason: str = Field(default="", description="Details on why skipped or failed")
-    extracted_at: datetime = Field(default_factory=datetime.utcnow)
+    extracted_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class StoreListing(BaseModel):
@@ -343,7 +343,7 @@ class RuleResult(BaseModel):
     citations: List[str] = Field(default_factory=list, description="Citation IDs for policies/standards")
     explanation: str = Field(description="Why rule was triggered and verdict rendered")
     recommended_action: str = Field(description="Action to take based on verdict")
-    triggered_at: datetime = Field(default_factory=datetime.utcnow, description="When rule was evaluated")
+    triggered_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), description="When rule was evaluated")
 
 
 class RuleResults(BaseModel):
@@ -375,7 +375,7 @@ class GovernanceReport(BaseModel):
     scan_id: str
     extension_id: Optional[str] = None
     extension_name: Optional[str] = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     decision: GovernanceDecision
     rule_results: List[RuleResult] = Field(default_factory=list)

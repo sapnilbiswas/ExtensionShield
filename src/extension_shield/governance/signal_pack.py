@@ -17,7 +17,7 @@ Evidence Rule:
 
 import hashlib
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional
 from pydantic import BaseModel, Field
 
@@ -43,7 +43,7 @@ class ToolEvidence(BaseModel):
     line_end: Optional[int] = Field(default=None, description="Ending line number")
     snippet: Optional[str] = Field(default=None, description="Code/content snippet (max 200 chars)")
     raw_data: Optional[Dict[str, Any]] = Field(default=None, description="Raw tool output (limited)")
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     @classmethod
     def create(
@@ -475,7 +475,7 @@ class SignalPack(BaseModel):
     )
     
     # Metadata
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     def get_evidence_by_tool(self, tool_name: str) -> List[ToolEvidence]:
         """Get all evidence items from a specific tool."""

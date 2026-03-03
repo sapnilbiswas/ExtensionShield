@@ -16,7 +16,7 @@ Output: evidence_index.json
 import hashlib
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 
@@ -158,7 +158,7 @@ class EvidenceIndexBuilder:
                 snippet=self._truncate_snippet(finding.code_snippet),
                 provenance=provenance,
                 version=1,
-                created_at=datetime.utcnow(),
+                created_at=datetime.now(timezone.utc),
             )
         
         logger.debug("Extracted %d SAST evidence items", len(sast_findings))
@@ -199,7 +199,7 @@ class EvidenceIndexBuilder:
                     snippet=None,  # VT doesn't provide code snippets
                     provenance=provenance,
                     version=1,
-                    created_at=datetime.utcnow(),
+                    created_at=datetime.now(timezone.utc),
                 )
         
         vt_evidence_count = sum(1 for f in vt_findings if f.threat_level in ["suspicious", "malicious"])
@@ -239,7 +239,7 @@ class EvidenceIndexBuilder:
                     snippet=None,  # Entropy doesn't have specific snippets
                     provenance=provenance,
                     version=1,
-                    created_at=datetime.utcnow(),
+                    created_at=datetime.now(timezone.utc),
                 )
         
         entropy_evidence_count = sum(
@@ -275,7 +275,7 @@ class EvidenceIndexBuilder:
                     snippet=f'"permissions": ["{finding.permission_name}"]',
                     provenance=provenance,
                     version=1,
-                    created_at=datetime.utcnow(),
+                    created_at=datetime.now(timezone.utc),
                 )
         
         perm_evidence_count = sum(1 for f in perm_findings if not f.is_reasonable)
@@ -309,7 +309,7 @@ class EvidenceIndexBuilder:
                 snippet=f'"host_permissions": {json.dumps(broad_patterns)}',
                 provenance=provenance,
                 version=1,
-                created_at=datetime.utcnow(),
+                created_at=datetime.now(timezone.utc),
             )
             
             logger.debug("Extracted manifest evidence for broad patterns: %s", broad_patterns)

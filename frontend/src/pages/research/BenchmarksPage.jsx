@@ -8,6 +8,7 @@ const BenchmarksPage = () => {
   const { theme } = useTheme();
   const [trendsData, setTrendsData] = useState(null);
   const [benchmarksData, setBenchmarksData] = useState(null);
+  const [scannerComparison, setScannerComparison] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expandedCategory, setExpandedCategory] = useState(null);
@@ -15,11 +16,9 @@ const BenchmarksPage = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Use relative paths - Vite serves public/ files at root in dev
-        // In production, they're also at root after build
-        // Ensure paths start with '/' to make them absolute from domain root
         const trendsUrl = new URL('/data/trends.json', window.location.origin).href;
         const benchmarksUrl = new URL('/data/benchmarks.json', window.location.origin).href;
+        const comparisonUrl = new URL('/data/scanner_comparison.json', window.location.origin).href;
 
         const [trendsRes, benchmarksRes] = await Promise.all([
           fetch(trendsUrl),
@@ -34,10 +33,9 @@ const BenchmarksPage = () => {
           throw new Error(`Failed to load benchmarks data: ${benchmarksRes.status} ${benchmarksRes.statusText}`);
         }
 
-        // Check content type before parsing
         const trendsContentType = trendsRes.headers.get('content-type');
         const benchmarksContentType = benchmarksRes.headers.get('content-type');
-        
+
         if (!trendsContentType?.includes('application/json')) {
           const text = await trendsRes.text();
           throw new Error(`Invalid content type for trends.json. Expected JSON, got: ${trendsContentType}. Response: ${text.substring(0, 100)}`);
@@ -53,10 +51,21 @@ const BenchmarksPage = () => {
 
         setTrendsData(trends);
         setBenchmarksData(benchmarks);
+
+        try {
+          const comparisonRes = await fetch(comparisonUrl);
+          if (comparisonRes.ok && comparisonRes.headers.get('content-type')?.includes('application/json')) {
+            const comparison = await comparisonRes.json();
+            if (comparison?.extensions?.length) {
+              setScannerComparison(comparison);
+            }
+          }
+        } catch {
+          // Optional: scanner_comparison.json may not exist
+        }
+
         setLoading(false);
       } catch (err) {
-        // console.error('Error loading benchmark data:', err); // prod: no console
-        // Provide more helpful error message
         const errorMessage = err.message || 'Failed to load benchmark data. Please check that the data files are available.';
         setError(errorMessage);
         setLoading(false);
@@ -204,6 +213,58 @@ const BenchmarksPage = () => {
             </div>
             <SourcesBox sources={trendsData.sources} />
           </section>
+
+          {/* Scanner comparison (optional: when scanner_comparison.json is present) */}
+          {scannerComparison && scannerComparison.extensions && scannerComparison.extensions.length > 0 && (
+            <section className="scanner-comparison-section">
+              <div className="section-header">
+                <h2>Scanner comparison</h2>
+                <p>ExtensionShield vs other scanners on the same extensions (sample from our database)</p>
+              </div>
+              <div className="scanner-comparison-table-wrap">
+                <table className="scanner-comparison-table">
+                  <thead>
+                    <tr>
+                      <th>Extension</th>
+                      <th>ExtensionShield</th>
+                      {scannerComparison.metadata?.crxplorer_included && <th>CRXplorer</th>}
+                      {scannerComparison.metadata?.extension_auditor_included && <th>Extension Auditor</th>}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {scannerComparison.extensions.slice(0, 20).map((ext) => (
+                      <tr key={ext.extension_id}>
+                        <td>
+                          <a href={`/scan/results/${ext.extension_id}`}>{ext.extension_name || ext.extension_id}</a>
+                        </td>
+                        <td>
+                          {ext.extensionshield?.overall_score != null ? (
+                            <span>{ext.extensionshield.overall_score} — {ext.extensionshield.decision || "—"}</span>
+                          ) : (
+                            "—"
+                          )}
+                        </td>
+                        {scannerComparison.metadata?.crxplorer_included && (
+                          <td>
+                            {ext.crxplorer?.label || ext.crxplorer?.reason || "—"}
+                          </td>
+                        )}
+                        {scannerComparison.metadata?.extension_auditor_included && (
+                          <td>
+                            {ext.extension_auditor?.trusted != null ? (ext.extension_auditor.trusted ? "Trusted" : "—") : "—"}
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="scanner-comparison-meta">
+                Generated {scannerComparison.generated_at ? new Date(scannerComparison.generated_at).toLocaleDateString() : ""}.
+                Methodology: docs/SCANNER_BENCHMARK_AND_REPUTATION.md
+              </p>
+            </section>
+          )}
 
           {/* Capability Grid */}
           <section className="capability-section">

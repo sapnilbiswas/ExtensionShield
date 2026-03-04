@@ -14,6 +14,12 @@ title = "ExtensionShield secret scan"
   ]
   regexes = [
     '''sk-your-openai-api-key-here''',
+    '''YOUR_OPENAI_KEY_HERE''',
+    '''YOUR_WATSONX_KEY_HERE''',
+    '''YOUR_GROQ_KEY_HERE''',
+    '''YOUR_RITS_KEY_HERE''',
+    '''YOUR_SUPABASE_SERVICE_ROLE_KEY_HERE''',
+    '''YOUR_RESEND_API_KEY_HERE''',
     '''your-anon-key-here''',
     '''your-project-id\.supabase\.co''',
     '''your-supabase-project-ref''',

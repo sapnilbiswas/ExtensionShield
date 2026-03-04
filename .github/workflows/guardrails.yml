@@ -1,0 +1,26 @@
+# OSS guardrails: fail if private/sensitive paths are ever tracked.
+# Prevents accidental leakage as the repo grows.
+name: OSS guardrails
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  no-private-paths:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fail if private paths are tracked
+        run: |
+          PATTERNS='^\.env$|\.db$|extensions_storage/|contracts/|^docs/|freelancer|\.railway|\.(pem|p12|pfx|key)$'
+          TRACKED=$(git ls-files | grep -E "$PATTERNS" || true)
+          if [ -n "$TRACKED" ]; then
+            echo "::error::The following private/sensitive paths must not be tracked. Add them to .gitignore and run 'git rm -r --cached <path>'."
+            echo "$TRACKED"
+            exit 1
+          fi
+          echo "No private paths are tracked."

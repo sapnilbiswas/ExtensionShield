@@ -50,9 +50,9 @@ export default function ScanUploadPage() {
           <div className="scan-upload-dropzone-wrap">
             {showSignInOverlay && (
               <div className="scan-upload-gate scan-upload-gate--signin">
-                <p className="scan-upload-gate__text">Start a Pro audit</p>
-                <button type="button" className="scan-upload-gate__btn" onClick={openSignInModal}>
-                  Start a Pro audit
+                <p className="scan-upload-gate__text">Login required</p>
+                <button type="button" className="action-signin scan-upload-gate__btn" onClick={openSignInModal}>
+                  Sign In
                 </button>
                 <p className="scan-upload-gate__secondary">
                   <Link to="/scan">Or run a free extension risk check →</Link>

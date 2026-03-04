@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Download } from "lucide-react";
 import { useScan } from "../context/ScanContext";
 import { useAuth } from "../context/AuthContext";
 import SEOHead from "../components/SEOHead";
@@ -10,6 +10,7 @@ import DemoModal from "../components/DemoModal";
 import UploadModal from "../components/UploadModal";
 import DevOpenCoreSection from "../components/home/DevOpenCoreSection";
 import HowWeProtectYouSection from "../components/home/HowWeProtectYouSection";
+import { CHROME_EXTENSION_STORE_URL } from "../utils/constants";
 import "./HomePage.scss";
 
 const HomePage = () => {
@@ -164,7 +165,7 @@ const HomePage = () => {
           className="hero-section"
           aria-label="Chrome Extension Security Gate"
         >
-          {/* Mobile/tablet: scanner not supported — show idea + Watch demo + Check on desktop */}
+          {/* Mobile/tablet: scanner not supported — show idea + Step-by-step guide + Check on desktop */}
           <div className="hero-mobile-message">
             <p className="hero-tagline">CHROME EXTENSION SECURITY GATE</p>
             <h1 className="hero-title">Ship safer Chrome extensions.</h1>
@@ -180,7 +181,7 @@ const HomePage = () => {
                   <polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none" />
                 </svg>
               </span>
-              <span>Watch demo</span>
+              <span>Step-by-step guide</span>
             </button>
             <p className="hero-mobile-cta">Check on desktop.</p>
           </div>
@@ -219,7 +220,21 @@ const HomePage = () => {
                 <h1 className="hero-title">
                   Know what your Chrome extensions can access.
                 </h1>
-                <p className="hero-scan-info hero-scan-free">Free public scan by URL or extension ID.</p>
+                <button
+                  type="button"
+                  ref={demoTriggerRef}
+                  className="scanner-demo-link scanner-demo-link--above"
+                  title="Step-by-step guide to scanning an extension"
+                  onClick={() => setDemoModalOpen(true)}
+                >
+                  <span className="scanner-demo-icon" aria-hidden>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10" />
+                      <polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none" />
+                    </svg>
+                  </span>
+                  <span>Step-by-step guide</span>
+                </button>
                 <div className="hero-search">
                   <div className="search-container">
                     <span className="search-icon search-icon-chrome" aria-hidden="true">
@@ -261,21 +276,17 @@ const HomePage = () => {
                     </svg>
                     Checks permissions, network access, version history, and known threats.
                   </p>
-                  <button
-                    type="button"
-                    ref={demoTriggerRef}
-                    className="scanner-demo-link"
-                    title="See how to scan an extension step-by-step"
-                    onClick={() => setDemoModalOpen(true)}
-                  >
-                    <span className="scanner-demo-icon" aria-hidden>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <circle cx="12" cy="12" r="10" />
-                        <polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none" />
-                      </svg>
-                    </span>
-                    <span>Watch demo</span>
-                  </button>
+                  <div className="hero-cta-block">
+                    <a
+                      href={CHROME_EXTENSION_STORE_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="get-extension-btn"
+                    >
+                      <Download size={18} strokeWidth={2} aria-hidden />
+                      Add to Chrome
+                    </a>
+                  </div>
                   {scanError && <p className="scan-error-hint">{scanError}</p>}
                 </div>
               </>

@@ -242,9 +242,9 @@ class ScoringEngine:
         
         layer_weights = self.weights.layer_weights
         base_overall = round(
-            security_score * layer_weights.get("security", 0.5) +
-            privacy_score * layer_weights.get("privacy", 0.3) +
-            governance_score * layer_weights.get("governance", 0.2)
+            security_score * layer_weights.get("security", 0.34) +
+            privacy_score * layer_weights.get("privacy", 0.33) +
+            governance_score * layer_weights.get("governance", 0.33)
         )
         
         gate_results = self.gates.evaluate_all(signal_pack, manifest)
@@ -257,9 +257,9 @@ class ScoringEngine:
         )
         
         overall_after_gates = round(
-            security_score * layer_weights.get("security", 0.5) +
-            privacy_score * layer_weights.get("privacy", 0.3) +
-            governance_score * layer_weights.get("governance", 0.2)
+            security_score * layer_weights.get("security", 0.34) +
+            privacy_score * layer_weights.get("privacy", 0.33) +
+            governance_score * layer_weights.get("governance", 0.33)
         )
         gate_penalty = base_overall - overall_after_gates
         gate_reasons_list: List[str] = []

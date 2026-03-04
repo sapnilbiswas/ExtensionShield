@@ -217,7 +217,8 @@ def _print_summary(applied: List[str], skipped: List[str]) -> None:
 
 
 def main() -> int:
-    repo_root = Path(__file__).resolve().parents[1]
+    # Project root is 2 levels up from scripts/cloud_only/run_supabase_migrations.py
+    repo_root = Path(__file__).resolve().parents[2]
     migrations_dir = repo_root / "supabase" / "migrations"
 
     try:

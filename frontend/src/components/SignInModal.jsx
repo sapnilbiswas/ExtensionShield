@@ -13,6 +13,7 @@ const SignInModal = () => {
     authError,
     authSuccessMessage,
     clearError,
+    authEnabled,
   } = useAuth();
 
   const [email, setEmail] = useState("");
@@ -31,10 +32,14 @@ const SignInModal = () => {
   }, [email, clearError]);
 
   const handleGoogleSignIn = async () => {
+    if (!authEnabled) {
+      setLocalError("Sign-in is not configured. Set VITE_AUTH_ENABLED and Supabase credentials to enable.");
+      return;
+    }
     try {
       await signInWithGoogle();
     } catch (error) {
-      // Handled by context
+      setLocalError(error.message || "Google sign-in failed");
     }
   };
 
@@ -47,11 +52,15 @@ const SignInModal = () => {
       setLocalError("Please enter your email");
       return;
     }
+    if (!authEnabled) {
+      setLocalError("Sign-in is not configured. Set VITE_AUTH_ENABLED and Supabase credentials to enable.");
+      return;
+    }
 
     try {
       await signInWithMagicLink(trimmed);
     } catch (error) {
-      setLocalError(error.message);
+      setLocalError(error.message || "Could not send magic link");
     }
   };
 
@@ -128,7 +137,8 @@ const SignInModal = () => {
               </svg>
             </div>
             <h3 className="magic-link-success-title">Check your email</h3>
-            <p className="magic-link-success-text">Check spam if you don’t see it.</p>
+            <p className="magic-link-success-text">{authSuccessMessage}</p>
+            <p className="magic-link-success-hint">Check spam if you don’t see it.</p>
           </div>
         ) : (
           <form className="email-form email-form--magic" onSubmit={handleMagicLinkSubmit}>

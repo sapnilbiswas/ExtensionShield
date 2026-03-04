@@ -112,10 +112,10 @@ const RiskBadge = ({ level, score }) => {
 };
 
 // =============================================================================
-// TESTING: Set to true to show scan history table without signing in (uses /api/recent).
-// COMMENT OUT or set to false when login is required for production.
+// Set to false to require login for scan history (production). When true, shows
+// limited public table without sign-in.
 // =============================================================================
-const SHOW_TABLE_WITHOUT_SIGN_IN = true;
+const SHOW_TABLE_WITHOUT_SIGN_IN = false;
 
 /**
  * ScanHistoryPage Component
@@ -411,6 +411,7 @@ const ScanHistoryPage = () => {
 
   const isPublicView = !isAuthenticated;
   const showBlur = isPublicView && !SHOW_TABLE_WITHOUT_SIGN_IN; // No blur when testing without sign-in
+  const showLoginRequiredGate = !isAuthenticated && !SHOW_TABLE_WITHOUT_SIGN_IN;
 
   return (
     <>
@@ -422,6 +423,18 @@ const ScanHistoryPage = () => {
       />
       <div className="history-page">
         <div className="history-content">
+        {/* Login required gate */}
+        {showLoginRequiredGate && (
+          <div className="history-login-gate">
+            <p className="history-login-gate__text">Login required to view scan history.</p>
+            <button type="button" className="action-signin" onClick={openSignInModal}>
+              Sign In
+            </button>
+          </div>
+        )}
+
+        {!showLoginRequiredGate && (
+        <>
         {/* Header */}
         <div className="history-header">
           <h1>Scan History</h1>
@@ -744,7 +757,7 @@ const ScanHistoryPage = () => {
               </button>
             )}
             {!searchTerm && isPublicView && (
-              <button className="empty-action-btn" onClick={openSignInModal}>
+              <button type="button" className="empty-action-btn action-signin" onClick={openSignInModal}>
                 Sign In
               </button>
             )}
@@ -762,12 +775,14 @@ const ScanHistoryPage = () => {
                 <path d="M7 11V7a5 5 0 0 1 10 0v4" />
               </svg>
               <h3>Sign in to view scanned extensions</h3>
-              <button className="login-overlay-btn" onClick={openSignInModal}>
+              <button type="button" className="login-overlay-btn action-signin" onClick={openSignInModal}>
                 Sign In
               </button>
             </div>
-          </div>
+            </div>
           </>
+        )}
+        </>
         )}
       </div>
       </div>

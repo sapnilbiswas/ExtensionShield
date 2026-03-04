@@ -9,7 +9,7 @@ function TestWrapper() {
   return (
     <>
       <button type="button" ref={triggerRef} onClick={() => setOpen(true)}>
-        Watch demo
+        Step-by-step guide
       </button>
       <DemoModal isOpen={open} onClose={() => setOpen(false)} triggerRef={triggerRef} />
     </>
@@ -21,10 +21,10 @@ describe("DemoModal", () => {
     vi.stubGlobal("matchMedia", vi.fn(() => ({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() })));
   });
 
-  it("opens on Watch demo click, shows step 1 image; Next twice shows step 3; Done closes", () => {
+  it("opens on Step-by-step guide click, shows step 1 image; Next twice shows step 3; Done closes", () => {
     render(<TestWrapper />);
 
-    const watchDemoBtn = screen.getByRole("button", { name: /watch demo/i });
+    const watchDemoBtn = screen.getByRole("button", { name: /step-by-step guide/i });
     fireEvent.click(watchDemoBtn);
 
     const dialog = screen.getByRole("dialog");

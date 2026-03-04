@@ -52,6 +52,22 @@
   align-items: center;
 }
 
+/* Login required gate (when not authenticated) */
+.history-login-gate {
+  width: 100%;
+  text-align: center;
+  padding: 3rem 1.5rem;
+  margin-bottom: 2rem;
+}
+.history-login-gate__text {
+  font-size: 1.125rem;
+  color: var(--atlas-text-secondary);
+  margin: 0 0 1.25rem;
+}
+.history-login-gate .action-signin {
+  margin: 0;
+}
+
 /* Statistics Charts Section */
 .history-stats-section {
   width: 100%;

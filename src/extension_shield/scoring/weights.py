@@ -63,9 +63,9 @@ GOVERNANCE_WEIGHTS_V1: Dict[str, float] = {
 # Total: 1.0
 
 LAYER_WEIGHTS: Dict[str, float] = {
-    "security": 0.50,       # Security is primary concern
-    "privacy": 0.30,        # Privacy is secondary but important
-    "governance": 0.20,     # Governance for policy compliance
+    "security": 0.34,
+    "privacy": 0.33,
+    "governance": 0.33,
 }
 
 

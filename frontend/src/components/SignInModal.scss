@@ -484,7 +484,7 @@
   font-size: 0.9375rem;
   font-weight: 600;
   font-family: inherit;
-  color: #0a0f1a;
+  color: #fff;
   background: linear-gradient(135deg, var(--theme-accent) 0%, var(--theme-accent-hover) 100%);
   border: 1px solid var(--theme-border-accent);
   border-radius: 12px;
@@ -496,6 +496,10 @@
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
+
+  .submit-btn-icon {
+    color: #fff;
+  }
 
   &::before {
     content: "";

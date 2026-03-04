@@ -71,8 +71,11 @@ COPY pyproject.toml uv.lock README.md ./
 COPY src/ ./src/
 COPY scripts/ ./scripts/
 
-# Copy docs directory (migrations are needed, .dockerignore excludes other docs)
-COPY docs/ ./docs/
+# docs/ is gitignored so not in build context; create empty dir (code only references it in error messages)
+RUN mkdir -p docs
+
+# Copy Supabase migrations (used by run_supabase_migrations.py at startup when Supabase is configured)
+COPY supabase/ ./supabase/
 
 # Install Python dependencies and build the project
 RUN uv sync --frozen --no-dev

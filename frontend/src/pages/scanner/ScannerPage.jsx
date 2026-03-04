@@ -586,7 +586,7 @@ const ScannerPage = () => {
               type="button"
               ref={demoTriggerRef}
               className="scanner-demo-link"
-              title="See how to scan an extension step-by-step"
+              title="Step-by-step guide to scanning an extension"
               onClick={() => setDemoModalOpen(true)}
             >
               <span className="scanner-demo-icon" aria-hidden>
@@ -595,7 +595,7 @@ const ScannerPage = () => {
                   <polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none" />
                 </svg>
               </span>
-              <span>Watch demo</span>
+              <span>Step-by-step guide</span>
             </button>
           </div>
 

@@ -53,15 +53,18 @@ const signInWithGoogle = async () => {
       },
     },
   });
-  
+
   if (error) {
-    // console.error("Google OAuth error:", error); // prod: no console
     sessionStorage.removeItem("auth:returnTo");
     throw new Error(error.message || "Google sign-in failed");
   }
-  
-  // OAuth will redirect, so we don't need to return anything
-  // The redirect will happen automatically
+
+  // Redirect to Google's OAuth page (required; Supabase returns the URL, we must navigate)
+  if (data?.url) {
+    window.location.href = data.url;
+    return;
+  }
+  throw new Error("Google sign-in did not return a redirect URL");
 };
 
 const signInWithGitHub = async () => {
@@ -82,15 +85,18 @@ const signInWithGitHub = async () => {
       redirectTo: callbackUrl,
     },
   });
-  
+
   if (error) {
-    // console.error("GitHub OAuth error:", error); // prod: no console
     sessionStorage.removeItem("auth:returnTo");
     throw new Error(error.message || "GitHub sign-in failed");
   }
-  
-  // OAuth will redirect, so we don't need to return anything
-  // The redirect will happen automatically
+
+  // Redirect to GitHub's OAuth page (required; Supabase returns the URL, we must navigate)
+  if (data?.url) {
+    window.location.href = data.url;
+    return;
+  }
+  throw new Error("GitHub sign-in did not return a redirect URL");
 };
 
 /** Magic link: one email for both sign-up and sign-in. No password. */

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, useInView } from "framer-motion";
-import { Package, RefreshCcw, AlertTriangle, ShieldCheck } from "lucide-react";
+import { Package, RefreshCcw, AlertTriangle, ShieldCheck, Download } from "lucide-react";
+import { CHROME_EXTENSION_STORE_URL } from "../../utils/constants";
 import "./HowWeProtectYouSection.scss";
 
 const stagger = 0.12;
@@ -146,6 +147,19 @@ export default function HowWeProtectYouSection() {
             <p className="how-protect-body">
               Most incidents happen after an update. We flag risky changes before release (Pro) and can monitor updates for teams (Enterprise).
             </p>
+            <p className="how-protect-tagline">
+              Batch scan every extension on your system and stay secure—no manual entry.
+            </p>
+            <a
+              href={CHROME_EXTENSION_STORE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="get-extension-btn how-protect-cta"
+              title="Install ExtensionShield from Chrome Web Store"
+            >
+              <Download size={18} strokeWidth={2} aria-hidden />
+              <span>Get extension</span>
+            </a>
           </motion.div>
 
           {/* RIGHT: Animated timeline */}

@@ -20,38 +20,42 @@ export const useAuth = () => {
 const noop = () => {};
 const asyncNoop = async () => {};
 
-const ossAuthValue = {
-  user: null,
-  session: null,
-  isLoading: false,
-  isAuthenticated: false,
-  accessToken: null,
-  getAccessToken: () => null,
-  authError: null,
-  authSuccessMessage: null,
-  isSignInModalOpen: false,
-  signInWithGoogle: asyncNoop,
-  signInWithGitHub: asyncNoop,
-  signInWithMagicLink: asyncNoop,
-  signInWithEmail: asyncNoop,
-  signUpWithEmail: asyncNoop,
-  signOut: asyncNoop,
-  openSignInModal: noop,
-  closeSignInModal: noop,
-  clearError: noop,
-  refreshAuth: asyncNoop,
-  authEnabled: false,
-};
-
 export const AuthProvider = ({ children }) => {
+  // Modal state: always available so "Sign In" opens the modal even when auth is disabled (OSS mode)
+  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
+  const openModal = useCallback(() => setIsSignInModalOpen(true), []);
+  const closeModal = useCallback(() => setIsSignInModalOpen(false), []);
+
+  const modalOnlyValue = {
+    user: null,
+    session: null,
+    isLoading: false,
+    isAuthenticated: false,
+    accessToken: null,
+    getAccessToken: () => null,
+    authError: null,
+    authSuccessMessage: null,
+    isSignInModalOpen,
+    signInWithGoogle: asyncNoop,
+    signInWithGitHub: asyncNoop,
+    signInWithMagicLink: asyncNoop,
+    signInWithEmail: asyncNoop,
+    signUpWithEmail: asyncNoop,
+    signOut: asyncNoop,
+    openSignInModal: openModal,
+    closeSignInModal: closeModal,
+    clearError: noop,
+    refreshAuth: asyncNoop,
+    authEnabled: false,
+  };
+
   if (!AUTH_ENABLED) {
-    return <AuthContext.Provider value={ossAuthValue}>{children}</AuthContext.Provider>;
+    return <AuthContext.Provider value={modalOnlyValue}>{children}</AuthContext.Provider>;
   }
 
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
   const [authError, setAuthError] = useState(null);
   const [authSuccessMessage, setAuthSuccessMessage] = useState(null);
   const hasProcessedOAuthCodeRef = useRef(false);

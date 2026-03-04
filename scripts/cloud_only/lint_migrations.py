@@ -57,7 +57,7 @@ def _find_concurrently(paths: Sequence[Path]) -> List[str]:
 
 
 def main() -> int:
-    repo_root = Path(__file__).resolve().parents[1]
+    repo_root = Path(__file__).resolve().parents[2]
     migrations_dir = repo_root / "supabase" / "migrations"
 
     errors: List[str] = []

@@ -7,6 +7,14 @@ wheels/
 *.egg-info
 
 # ------------------------------------------------------------------------------
+# Private boundaries (OSS safety — do not remove)
+# ------------------------------------------------------------------------------
+# .env (except .env.example / .env.template) | *.db | extensions_storage/
+# docs/ | contracts/ | .venv/ | node_modules/ | frontend/dist/ | frontend/.vite/
+# freelancer-repos/ | .railway-* | *.pem | *.key | *.p12 | *.pfx
+# ------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
 # Pre-open-source: do not publish (secrets / local / generated)
 # ------------------------------------------------------------------------------
 # .env, .venv/, node_modules/, .pytest_cache/, .vscode/, *.db, extensions_storage/, **/*.log

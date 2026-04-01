@@ -14,8 +14,14 @@
   text-align: center;
 }
 
+.compare-back-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
 .compare-back {
-  display: inline-block;
+  display: block;
   background: none;
   border: none;
   color: var(--theme-text-secondary);

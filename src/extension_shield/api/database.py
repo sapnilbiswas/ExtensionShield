@@ -1242,9 +1242,10 @@ class SupabaseDatabase:
                 ).eq("user_id", user_id).eq("extension_id", extension_id).execute()
                 return True
             
-            # Insert new scan history (trigger will handle karma increment)
+            # Insert new scan history with last_viewed_at set immediately so new scans
+            # sort correctly even if the column default was missing in an older deployment.
             self.client.table("user_scan_history").insert(
-                {"user_id": user_id, "extension_id": extension_id}
+                {"user_id": user_id, "extension_id": extension_id, "last_viewed_at": now_iso}
             ).execute()
             return True
         except Exception as e:
@@ -1337,6 +1338,7 @@ class SupabaseDatabase:
                 .select("extension_id, created_at, last_viewed_at")
                 .eq("user_id", user_id)
                 .order("last_viewed_at", desc=True)
+                .order("created_at", desc=True)
                 .limit(limit)
                 .execute()
             )
@@ -2082,4 +2084,3 @@ def _create_db():
 
 # Global database instance
 db = _create_db()
-

@@ -2934,9 +2934,14 @@ async def get_enforcement_bundle(extension_id: str):
         # Governance analysis was not run or failed
         governance_error = results.get("governance_error")
         if governance_error:
+            logger.error(
+                "Governance failed for %s: %s",
+                extension_id,
+                governance_error,
+            )
             raise HTTPException(
                 status_code=500,
-                detail=f"Governance analysis failed: {governance_error}"
+                detail="Governance analysis failed. Please try again."
             )
         raise HTTPException(
             status_code=404,

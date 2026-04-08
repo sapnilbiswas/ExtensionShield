@@ -70,27 +70,27 @@ jobs:
                 description: "Changes to test coverage or test infrastructure",
               },
               {
-                name: "kind: bug",
+                name: "bug",
                 color: "d73a4a",
                 description: "Bug report or bug fix related work",
               },
               {
-                name: "kind: feature",
+                name: "feature",
                 color: "a2eeef",
                 description: "Feature request or feature implementation",
               },
               {
-                name: "kind: documentation",
+                name: "documentation",
                 color: "0075ca",
                 description: "Documentation request or docs-focused work",
               },
               {
-                name: "kind: question",
+                name: "question",
                 color: "cc317c",
                 description: "Question, support, or clarification request",
               },
               {
-                name: "kind: security",
+                name: "security",
                 color: "b60205",
                 description: "Security-sensitive issue or change",
               },
@@ -167,9 +167,21 @@ jobs:
           script: |
             const issue = context.payload.issue;
             const text = `${issue.title || ""}\n${issue.body || ""}`.toLowerCase();
+            const managedLabels = [
+              "bug",
+              "feature",
+              "documentation",
+              "question",
+              "security",
+              "kind: bug",
+              "kind: feature",
+              "kind: documentation",
+              "kind: question",
+              "kind: security",
+            ];
             const rules = [
               {
-                label: "kind: security",
+                label: "security",
                 patterns: [
                   /\bsecurity\b/,
                   /\bvulnerability\b/,
@@ -180,7 +192,7 @@ jobs:
                 ],
               },
               {
-                label: "kind: bug",
+                label: "bug",
                 patterns: [
                   /\bbug\b/,
                   /\bregression\b/,
@@ -192,7 +204,7 @@ jobs:
                 ],
               },
               {
-                label: "kind: documentation",
+                label: "documentation",
                 patterns: [
                   /\bdocs?\b/,
                   /\breadme\b/,
@@ -201,7 +213,7 @@ jobs:
                 ],
               },
               {
-                label: "kind: feature",
+                label: "feature",
                 patterns: [
                   /\bfeature\b/,
                   /\benhancement\b/,
@@ -211,7 +223,7 @@ jobs:
                 ],
               },
               {
-                label: "kind: question",
+                label: "question",
                 patterns: [
                   /\bquestion\b/,
                   /\bhow do i\b/,
@@ -221,23 +233,36 @@ jobs:
               },
             ];
 
-            const labelsToAdd = rules
+            const expected = rules
               .filter((rule) => rule.patterns.some((pattern) => pattern.test(text)))
               .map((rule) => rule.label);
+            const existing = (issue.labels || [])
+              .map((label) => typeof label === "string" ? label : label.name)
+              .filter(Boolean);
+            const toRemove = existing.filter((label) => managedLabels.includes(label) && !expected.includes(label));
+            const toAdd = expected.filter((label) => !existing.includes(label));
 
-            if (labelsToAdd.length === 0) {
-              core.info("No issue keyword labels matched.");
-              return;
+            for (const label of toRemove) {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                name: label,
+              });
+              core.info(`Issue #${issue.number}: removed ${label}`);
             }
 
-            await github.rest.issues.addLabels({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: issue.number,
-              labels: labelsToAdd,
-            });
-
-            core.notice(`Added labels: ${labelsToAdd.join(", ")}`);
+            if (toAdd.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: toAdd,
+              });
+              core.notice(`Issue #${issue.number}: added ${toAdd.join(", ")}`);
+            } else if (toRemove.length === 0) {
+              core.info(`Issue #${issue.number}: no label changes needed`);
+            }
 
   backfill-open-prs:
     name: Backfill Open PR Labels
@@ -377,6 +402,11 @@ jobs:
         with:
           script: |
             const managedLabels = [
+              "bug",
+              "feature",
+              "documentation",
+              "question",
+              "security",
               "kind: bug",
               "kind: feature",
               "kind: documentation",
@@ -385,7 +415,7 @@ jobs:
             ];
             const rules = [
               {
-                label: "kind: security",
+                label: "security",
                 patterns: [
                   /\bsecurity\b/,
                   /\bvulnerability\b/,
@@ -396,7 +426,7 @@ jobs:
                 ],
               },
               {
-                label: "kind: bug",
+                label: "bug",
                 patterns: [
                   /\bbug\b/,
                   /\bregression\b/,
@@ -408,7 +438,7 @@ jobs:
                 ],
               },
               {
-                label: "kind: documentation",
+                label: "documentation",
                 patterns: [
                   /\bdocs?\b/,
                   /\breadme\b/,
@@ -417,7 +447,7 @@ jobs:
                 ],
               },
               {
-                label: "kind: feature",
+                label: "feature",
                 patterns: [
                   /\bfeature\b/,
                   /\benhancement\b/,
@@ -427,7 +457,7 @@ jobs:
                 ],
               },
               {
-                label: "kind: question",
+                label: "question",
                 patterns: [
                   /\bquestion\b/,
                   /\bhow do i\b/,
